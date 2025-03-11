@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+
+    <style>
+        /* General styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px 50px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            max-width: 400px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        /* Button styling */
+        .button {
+            padding: 12px 25px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .button:active {
+            background-color: #3e8e41;
+            transform: translateY(0);
+        }
+
+        /* Popup notification styles */
+        .popup {
+            position: fixed;
+            bottom: -100px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: all 0.5s ease-in-out;
+            z-index: 1000;
+        }
+
+        .popup.show {
+            bottom: 20px;
+            opacity: 1;
+        }
+
+        .popup.error {
+            background-color: #f44336;
+        }
+
+        .close-btn {
+            background-color: transparent;
+            color: white;
+            border: none;
+            font-size: 16px;
+            margin-left: 15px;
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+        function showPopup(message, isError = false) {
+            const popup = document.getElementById('notificationPopup');
+            const popupMessage = document.getElementById('popupMessage');
+            popupMessage.innerText = message;
+
+            if (isError) {
+                popup.classList.add('error');
+            } else {
+                popup.classList.remove('error');
+            }
+
+            popup.classList.add('show');
+
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  showPopup("{{ message }}", "{{ category }}" === "danger");
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+        });
+
+        function closePopup() {
+            document.getElementById('notificationPopup').classList.remove('show');
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Login</h2>
+
+        <form method="POST">
+            <label for="username">Username:</label>
+            <input type="text" name="username" required>
+            
+            <label for="password">Password:</label>
+            <input type="password" name="password" required>
+
+            <button type="submit" class="button">Login</button>
+        </form>
+    </div>
+
+    <!-- Popup notification -->
+    <div id="notificationPopup" class="popup">
+        <span id="popupMessage"></span>
+        <button class="close-btn" onclick="closePopup()">✖</button>
+    </div>
+</body>
+</html>

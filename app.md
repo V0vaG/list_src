@@ -8,7 +8,6 @@ item:
     - id
     - name
     - photo
-    - price
     - category:
         - food:
             - fruets

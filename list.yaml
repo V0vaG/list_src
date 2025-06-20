@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: list
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: list-data-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /home/vova/script_files/list
+  storageClassName: ""
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: list-data-pvc
+  namespace: list
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: list-data-pv
+  storageClassName: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: list-deployment
+  namespace: list
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: list
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: list
+    spec:
+      containers:
+      - name: list
+        image: vova0911/list:amd64_latest
+        ports:
+        - containerPort: 5000
+        # Uncomment if needed
+        # imagePullSecrets:
+        # - name: regcred
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "500m"
+          limits:
+            memory: "512Mi"
+            cpu: "1"
+        volumeMounts:
+        - name: data-volume
+          mountPath: /root/script_files/list
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: list-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: list-service
+  namespace: list
+spec:
+  selector:
+    app: list
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+      nodePort: 30082
+  type: NodePort

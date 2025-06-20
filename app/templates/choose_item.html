@@ -146,28 +146,29 @@
   </div>
 
   <!-- Overlay + Modal -->
-  <div id="overlay"></div>
-  <div class="numpad-modal" id="numpadModal">
-    <div class="numpad-display" id="numpadDisplay">0</div>
-    <div class="numpad-buttons">
-      <button onclick="appendNumpad('1')">1</button>
-      <button onclick="appendNumpad('2')">2</button>
-      <button onclick="appendNumpad('3')">3</button>
-      <button onclick="appendNumpad('4')">4</button>
-      <button onclick="appendNumpad('5')">5</button>
-      <button onclick="appendNumpad('6')">6</button>
-      <button onclick="appendNumpad('7')">7</button>
-      <button onclick="appendNumpad('8')">8</button>
-      <button onclick="appendNumpad('9')">9</button>
-      <button onclick="clearNumpad()">C</button>
-      <button onclick="appendNumpad('0')">0</button>
-      <button onclick="deleteNumpad()">⌫</button>
-    </div>
-    <div class="numpad-actions">
-      <button onclick="cancelNumpad()" style="background: #ccc;">Cancel</button>
-      <button onclick="submitNumpad()" style="background: #4CAF50; color: white;">Add</button>
-    </div>
+<div id="overlay"></div>
+<div class="numpad-modal" id="numpadModal">
+  <div class="numpad-display" id="numpadDisplay">*</div>
+  <div class="numpad-buttons">
+    <button onclick="appendNumpad('1')">1</button>
+    <button onclick="appendNumpad('2')">2</button>
+    <button onclick="appendNumpad('3')">3</button>
+    <button onclick="appendNumpad('4')">4</button>
+    <button onclick="appendNumpad('5')">5</button>
+    <button onclick="appendNumpad('6')">6</button>
+    <button onclick="appendNumpad('7')">7</button>
+    <button onclick="appendNumpad('8')">8</button>
+    <button onclick="appendNumpad('9')">9</button>
+    <button onclick="clearNumpad()">C</button>
+    <button onclick="appendNumpad('0')">0</button>
+    <button onclick="deleteNumpad()">⌫</button>
   </div>
+  <div class="numpad-actions">
+    <button onclick="cancelNumpad()" style="background: #ccc;">Cancel</button>
+    <button onclick="submitNumpad()" style="background: #4CAF50; color: white;">Add</button>
+  </div>
+</div>
+
 
   <script>
     let selectedItemId = null;
@@ -187,39 +188,41 @@
       });
     }
 
-    function showNumpad(itemId) {
-      selectedItemId = itemId;
-      document.getElementById('numpadDisplay').innerText = '0';
-      document.getElementById('overlay').style.display = 'block';
-      document.getElementById('numpadModal').style.display = 'block';
-    }
+  function showNumpad(itemId) {
+    selectedItemId = itemId;
+    clearNumpad();  // use new default
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('numpadModal').style.display = 'block';
+  }
 
-    function appendNumpad(digit) {
-      const display = document.getElementById('numpadDisplay');
-      if (display.innerText === '0') {
-        display.innerText = digit;
-      } else {
-        display.innerText += digit;
-      }
+  function appendNumpad(digit) {
+    const display = document.getElementById('numpadDisplay');
+    if (display.innerText === '*' || display.innerText === '0') {
+      display.innerText = digit;
+    } else {
+      display.innerText += digit;
     }
+  }
 
-    function deleteNumpad() {
-      const display = document.getElementById('numpadDisplay');
-      display.innerText = display.innerText.slice(0, -1) || '0';
-    }
+  function deleteNumpad() {
+    const display = document.getElementById('numpadDisplay');
+    const newText = display.innerText.slice(0, -1);
+    display.innerText = newText.length ? newText : '*';
+  }
 
-    function clearNumpad() {
-      document.getElementById('numpadDisplay').innerText = '0';
-    }
+  function clearNumpad() {
+    document.getElementById('numpadDisplay').innerText = '*';
+  }
 
-    function cancelNumpad() {
-      document.getElementById('numpadModal').style.display = 'none';
-      document.getElementById('overlay').style.display = 'none';
-      selectedItemId = null;
-    }
+  function cancelNumpad() {
+    document.getElementById('numpadModal').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    selectedItemId = null;
+  }
 
     function submitNumpad() {
-      const amount = parseInt(document.getElementById('numpadDisplay').innerText);
+      const text = document.getElementById('numpadDisplay').innerText;
+      const amount = parseInt(text);
       if (!isNaN(amount) && amount > 0 && selectedItemId) {
         document.getElementById('selectedItem').value = selectedItemId;
         document.getElementById('selectedAmount').value = amount;

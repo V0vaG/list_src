@@ -115,7 +115,7 @@
     </form>
 
     <div class="top-buttons">
-        <a href="{{ url_for('add_item_page') }}" class="button">➕ Add Item</a>
+        <button class="button" onclick="openEditModal(null)">➕ Add Item</button>
         <a href="{{ url_for('root_dashboard') }}" class="button">⬅ Back to Dashboard</a>
     </div>
 
@@ -151,9 +151,9 @@
     {% endif %}
 </div>
 
-<!-- Edit Modal -->
+<!-- Edit/Add Modal -->
 <div id="editModal">
-    <h3>Edit Item</h3>
+    <h3 id="modal-title">Edit Item</h3>
     <form id="editItemForm" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="id" id="edit-id">
 
@@ -172,9 +172,9 @@
             <!-- Options will be filled by JS -->
         </select>
 
-        <label>Change Image:</label>
+        <label>Image:</label>
         <input type="file" name="photo" id="edit-photo" accept="image/*" style="display: none;" onchange="updatePhotoLabel(this)">
-        <button type="button" class="button" onclick="document.getElementById('edit-photo').click();">📷 Change Image</button>
+        <button type="button" class="button" onclick="document.getElementById('edit-photo').click();">📷 Upload Image</button>
         <span id="photo-filename" style="font-size: 12px; margin-left: 10px;"></span>
         <img id="photo-preview" src="" alt="Preview">
 
@@ -192,7 +192,6 @@
         const subSelect = document.getElementById("edit-subcategory");
         const selectedCat = catSelect.value;
 
-        // Clear existing options
         subSelect.innerHTML = "";
 
         (categoryMap[selectedCat] || []).forEach(sub => {
@@ -206,20 +205,32 @@
     }
 
     function openEditModal(itemId) {
-        const item = itemsData.find(i => i.id === itemId);
-        if (!item) return;
+        const form = document.getElementById("editItemForm");
+        const title = document.getElementById("modal-title");
 
-        document.getElementById("edit-id").value = item.id;
-        document.getElementById("edit-name").value = item.name;
+        if (itemId) {
+            const item = itemsData.find(i => i.id === itemId);
+            if (!item) return;
 
-        document.getElementById("edit-category").value = item.category.type;
-        updateSubtypes(item.category.subtype);
+            document.getElementById("edit-id").value = item.id;
+            document.getElementById("edit-name").value = item.name;
+            document.getElementById("edit-category").value = item.category.type;
+            updateSubtypes(item.category.subtype);
+
+            form.action = `/item/edit/${item.id}`;
+            title.textContent = "Edit Item";
+        } else {
+            form.reset();
+            document.getElementById("edit-id").value = "";
+            updateSubtypes();
+            form.action = "/add_item";
+            title.textContent = "Add Item";
+        }
 
         document.getElementById("edit-photo").value = "";
         document.getElementById("photo-filename").textContent = "";
         document.getElementById("photo-preview").style.display = "none";
 
-        document.getElementById("editItemForm").action = `/item/edit/${item.id}`;
         document.getElementById("editModal").style.display = "block";
     }
 

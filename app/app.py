@@ -34,15 +34,13 @@ USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 LISTS_FILE = os.path.join(DATA_DIR, 'shopping_lists.json')
 
 CATEGORY_MAP = {
-    "food": ["fruets", "vedjtibals", "meat", "carbs", "else", "milk"],
-    "pharm": ["medic", "kids", "higean"],
-    "cleaning": [],
-    "home": [],
-    "viecal": [],
-    "other": []
+    "אוכל": ["פירות", "ירקות", "בשרי", "קטניות", "חלבי", "שתייה", "קפואים", "חטיפים", "דגים", "תבלינים"],
+    "סופר-פארם": ["רפואי", "לילדים", "הגיינה", "טיפוח", "בריאות", "מוצרי ניקוי"],
+    "ניקיון": ["אחר"],
+    "לבית": ["ריהוט", "כלים", "חשמל", "טקסטיל", "אחסון", "תאורה"],
+    "רכב": ["תחזוקה", "אביזרים", "דלק", "ניקוי", "בטיחות"],
+    "אחר": ["*"]
 }
-
-
 
 # Ensure the directory exists
 os.makedirs(DATA_DIR, exist_ok=True)

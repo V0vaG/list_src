@@ -1,191 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard</title>
-    <style>
-        /* General styling */
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f0f4f8;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Dashboard</title>
 
-        .container {
-            background-color: white;
-            padding: 30px 50px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-            text-align: center;
-            max-width: 600px;
-        }
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
 
-        h2 {
-            font-size: 1.8rem;
-            color: #333;
-            margin-bottom: 20px;
-        }
+    .container {
+      background-color: white;
+      padding: 30px 50px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      max-width: 600px;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
+    h2 {
+      font-size: 1.8rem;
+      color: #333;
+      margin-bottom: 20px;
+    }
 
-        table, th, td {
-            border: 1px solid #ddd;
-        }
+    .button {
+      padding: 12px 25px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      margin-top: 10px;
+      display: block;
+      text-decoration: none;
+      text-align: center;
+    }
 
-        th, td {
-            padding: 10px;
-            text-align: center;
-        }
+    .button:hover {
+      background-color: #45a049;
+      transform: translateY(-2px);
+    }
 
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
+    .button:active {
+      background-color: #3e8e41;
+      transform: translateY(0);
+    }
 
-        /* Button styling */
-        .button {
-            padding: 12px 25px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            margin-top: 10px;
-            display: block;
-            text-decoration: none;
-            text-align: center;
-        }
+    .popup {
+      position: fixed;
+      bottom: -100px;
+      right: 20px;
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transition: all 0.5s ease-in-out;
+      z-index: 1000;
+    }
 
-        .button:hover {
-            background-color: #45a049;
-            transform: translateY(-2px);
-        }
+    .popup.show {
+      bottom: 20px;
+      opacity: 1;
+    }
 
-        .button:active {
-            background-color: #3e8e41;
-            transform: translateY(0);
-        }
+    .popup.error {
+      background-color: #f44336;
+    }
 
-        /* Popup notification styles */
-        .popup {
-            position: fixed;
-            bottom: -100px;
-            right: 20px;
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            transition: all 0.5s ease-in-out;
-            z-index: 1000;
-        }
+    .close-btn {
+      background-color: transparent;
+      color: white;
+      border: none;
+      font-size: 16px;
+      margin-left: 15px;
+      cursor: pointer;
+    }
+  </style>
 
-        .popup.show {
-            bottom: 20px;
-            opacity: 1;
-        }
+  <script>
+    function showPopup(message, isError = false) {
+      const popup = document.getElementById('notificationPopup');
+      const popupMessage = document.getElementById('popupMessage');
+      popupMessage.innerText = message;
 
-        .popup.error {
-            background-color: #f44336;
-        }
+      if (isError) {
+        popup.classList.add('error');
+      } else {
+        popup.classList.remove('error');
+      }
 
-        .close-btn {
-            background-color: transparent;
-            color: white;
-            border: none;
-            font-size: 16px;
-            margin-left: 15px;
-            cursor: pointer;
-        }
-    </style>
-    
-    <script>
-        // Function to show the popup notification
-        function showPopup(message, isError = false) {
-            const popup = document.getElementById('notificationPopup');
-            const popupMessage = document.getElementById('popupMessage');
-            popupMessage.innerText = message;
-            
-            // Add error class if needed
-            if (isError) {
-                popup.classList.add('error');
-            } else {
-                popup.classList.remove('error');
-            }
+      popup.classList.add('show');
+      setTimeout(() => popup.classList.remove('show'), 3000);
+    }
 
-            // Show the popup
-            popup.classList.add('show');
+    function closePopup() {
+      document.getElementById('notificationPopup').classList.remove('show');
+    }
 
-            // Auto hide after 3 seconds
-            setTimeout(() => {
-                popup.classList.remove('show');
-            }, 3000);
-        }
-
-        // Display flash messages as popups
-        document.addEventListener('DOMContentLoaded', function() {
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                {% for category, message in messages %}
-                  showPopup("{{ message }}", "{{ category }}" === "danger");
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
-        });
-
-        // Close the popup manually
-        function closePopup() {
-            document.getElementById('notificationPopup').classList.remove('show');
-        }
-    </script>
+    document.addEventListener('DOMContentLoaded', function () {
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            showPopup("{{ message }}", "{{ category }}" === "danger");
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    });
+  </script>
 </head>
 <body>
-    <div class="container">
-        <h2>Welcome to the User Dashboard</h2>
+<div class="container">
+  <h2>Welcome to the User Dashboard</h2>
+  <p><strong>User:</strong> {{ username }}</p>
+  <p><strong>Role:</strong> {{ role }}</p>
+  <!-- Add this inside <body>, after the .container -->
+<!-- Inside your <div class="container">, replacing the shopping list table block -->
+<div class="container" style="margin-top: 20px;">
+  <h3>Your Shopping Lists</h3>
+  {% if user_lists %}
+    <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
+      <thead>
+        <tr style="background-color: #f0f0f0;">
+          <th style="padding: 10px; border: 1px solid #ccc;">Name</th>
+          <th style="padding: 10px; border: 1px solid #ccc;">Created</th>
+          <th style="padding: 10px; border: 1px solid #ccc;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for list in user_lists %}
+          <tr>
+            <td style="padding: 10px; border: 1px solid #ccc;">{{ list.name or "Unnamed" }}</td>
+            <td style="padding: 10px; border: 1px solid #ccc;">{{ list.created_at[:10] }}</td>
+            <td style="padding: 10px; border: 1px solid #ccc; display: flex; gap: 5px;">
+              <a href="{{ url_for('view_list_shopping', list_id=list.id) }}" class="button" style="padding: 6px 12px; font-size: 0.9rem;">View</a>
+              <form action="{{ url_for('delete_list') }}" method="POST" style="display: inline;">
+                <input type="hidden" name="list_id" value="{{ list.id }}">
+                <button type="submit" class="button" style="background-color: #e53935; font-size: 0.9rem; padding: 6px 12px;">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p style="margin-top: 10px;">No lists found.</p>
+  {% endif %}
+</div>
 
-    
 
-        <h3>Your Assigned Tools</h3>
-        <table>
-            <tr>
-                <th>Tool Name</th>
-                <th>ID</th>
-                <th>Description</th>
-                <th>Status</th>
-            </tr>
-            {% for tool in tools %}
-            <tr>
-                <td>{{ tool.name }}</td>
-                <td>{{ tool.id }}</td>
-                <td>{{ tool.description }}</td>
-                <td>{{ tool.status }}</td>
-            </tr>
-            {% endfor %}
-        </table>
 
-        <br>
-        <a href="{{ url_for('logout') }}" class="button">Logout</a>
-    </div>
+  {% if role == "root" %}
+    <a href="{{ url_for('root_dashboard') }}" class="button">Go to Root Dashboard</a>
+  {% endif %}
 
-    <!-- Popup notification -->
-    <div id="notificationPopup" class="popup">
-        <span id="popupMessage"></span>
-        <button class="close-btn" onclick="closePopup()">✖</button>
-    </div>
+  <a href="{{ url_for('new_list') }}" class="button">Create List</a>
+  <a href="{{ url_for('logout') }}" class="button">Logout</a>
+</div>
+
 </body>
 </html>

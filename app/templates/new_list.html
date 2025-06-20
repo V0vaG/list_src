@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create New List</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f5f5;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ccc;
+    }
+    .button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 10px;
+      display: inline-block;
+    }
+    .button-red {
+      background-color: #e74c3c;
+    }
+    .input-field {
+      padding: 8px;
+      width: 100%;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Create New List</h2>
+
+    {% if list_data %}
+      <p><strong>List Name:</strong> {{ list_data.name or 'Unnamed' }}</p>
+      <p><strong>List ID:</strong> {{ list_data.id }}</p>
+      <p><strong>Created:</strong> {{ list_data.created_at }}</p>
+      <p><strong>Total:</strong> ${{ "%.2f"|format(list_data.total_price) }}</p>
+
+      <a href="{{ url_for('choose_item', list_id=list_data.id) }}" class="button">Add Item</a>
+
+      {% if list_data.items %}
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Amount</th>
+              <th>Price</th>
+              <th>Total</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in list_data['items'] %}
+              <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.amount }}</td>
+                <td>${{ "%.2f"|format(item.price) }}</td>
+                <td>${{ "%.2f"|format(item.total_price) }}</td>
+                <td>
+                  <form method="POST" action="{{ url_for('delete_item', list_id=list_data.id, item_id=item.id) }}">
+                    <button type="submit" class="button button-red">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>No items added yet.</p>
+      {% endif %}
+
+      <form method="POST" action="{{ url_for('finish_list', list_id=list_data.id) }}">
+        <button type="submit" class="button">Finish List</button>
+      </form>
+    {% else %}
+      <form method="POST">
+        <input type="text" name="list_name" class="input-field" placeholder="Enter list name" required>
+        <button type="submit" class="button">Create New List</button>
+      </form>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Choose Item</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f5f5;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      max-width: 1000px;
+      margin: auto;
+    }
+    input[type="text"], select {
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .item-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .item-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .item-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+    .hidden {
+      display: none;
+    }
+
+    /* Numpad modal */
+    .numpad-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 300px;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      z-index: 1000;
+      padding: 20px;
+      text-align: center;
+      display: none;
+    }
+
+    .numpad-display {
+      font-size: 28px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .numpad-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .numpad-buttons button {
+      font-size: 20px;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      background-color: #f0f0f0;
+      cursor: pointer;
+    }
+
+    .numpad-actions {
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .numpad-actions button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Choose Item</h2>
+
+    <input type="text" id="searchInput" oninput="filterItems()" placeholder="Search by name...">
+    <select id="categorySelect" onchange="filterItems()">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+        <option value="{{ cat }}">{{ cat }}</option>
+      {% endfor %}
+    </select>
+
+    <form method="POST" id="itemForm">
+      <input type="hidden" name="item_id" id="selectedItem">
+      <input type="hidden" name="amount" id="selectedAmount">
+      <div class="grid">
+        {% for item in items %}
+          <div class="item-card" onclick="showNumpad('{{ item.id }}')" data-name="{{ item.name }}" data-category="{{ item.category.type }}">
+            <img src="{{ url_for('uploaded_file', filename=item.photo) }}" alt="Image">
+            <strong>{{ item.name }}</strong><br>
+            <small>{{ item.category.type }}</small>
+          </div>
+        {% endfor %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Overlay + Modal -->
+  <div id="overlay"></div>
+  <div class="numpad-modal" id="numpadModal">
+    <div class="numpad-display" id="numpadDisplay">0</div>
+    <div class="numpad-buttons">
+      <button onclick="appendNumpad('1')">1</button>
+      <button onclick="appendNumpad('2')">2</button>
+      <button onclick="appendNumpad('3')">3</button>
+      <button onclick="appendNumpad('4')">4</button>
+      <button onclick="appendNumpad('5')">5</button>
+      <button onclick="appendNumpad('6')">6</button>
+      <button onclick="appendNumpad('7')">7</button>
+      <button onclick="appendNumpad('8')">8</button>
+      <button onclick="appendNumpad('9')">9</button>
+      <button onclick="clearNumpad()">C</button>
+      <button onclick="appendNumpad('0')">0</button>
+      <button onclick="deleteNumpad()">⌫</button>
+    </div>
+    <div class="numpad-actions">
+      <button onclick="cancelNumpad()" style="background: #ccc;">Cancel</button>
+      <button onclick="submitNumpad()" style="background: #4CAF50; color: white;">Add</button>
+    </div>
+  </div>
+
+  <script>
+    let selectedItemId = null;
+
+    function filterItems() {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const category = document.getElementById("categorySelect").value.toLowerCase();
+      const cards = document.querySelectorAll(".item-card");
+
+      cards.forEach(card => {
+        const name = card.dataset.name.toLowerCase();
+        const cat = card.dataset.category.toLowerCase();
+        const matchName = name.includes(search);
+        const matchCat = !category || cat === category;
+
+        card.classList.toggle("hidden", !(matchName && matchCat));
+      });
+    }
+
+    function showNumpad(itemId) {
+      selectedItemId = itemId;
+      document.getElementById('numpadDisplay').innerText = '0';
+      document.getElementById('overlay').style.display = 'block';
+      document.getElementById('numpadModal').style.display = 'block';
+    }
+
+    function appendNumpad(digit) {
+      const display = document.getElementById('numpadDisplay');
+      if (display.innerText === '0') {
+        display.innerText = digit;
+      } else {
+        display.innerText += digit;
+      }
+    }
+
+    function deleteNumpad() {
+      const display = document.getElementById('numpadDisplay');
+      display.innerText = display.innerText.slice(0, -1) || '0';
+    }
+
+    function clearNumpad() {
+      document.getElementById('numpadDisplay').innerText = '0';
+    }
+
+    function cancelNumpad() {
+      document.getElementById('numpadModal').style.display = 'none';
+      document.getElementById('overlay').style.display = 'none';
+      selectedItemId = null;
+    }
+
+    function submitNumpad() {
+      const amount = parseInt(document.getElementById('numpadDisplay').innerText);
+      if (!isNaN(amount) && amount > 0 && selectedItemId) {
+        document.getElementById('selectedItem').value = selectedItemId;
+        document.getElementById('selectedAmount').value = amount;
+        document.getElementById('itemForm').submit();
+      }
+    }
+  </script>
+</body>
+</html>

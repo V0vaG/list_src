@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Item</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input, select {
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .button {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Add New Item</h2>
+    <form action="{{ url_for('add_item_page') }}" method="POST" enctype="multipart/form-data">
+        <label for="name">Item Name</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="photo">Photo</label>
+        <input type="file" id="photo" name="photo" accept="image/*" required>
+
+        <label for="category">Category</label>
+        <select id="category" name="category" required>
+            <option value="food">Food</option>
+            <option value="pharm">Pharm</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="home">Home</option>
+            <option value="viecal">Viecal</option>
+            <option value="other">Other</option>
+        </select>
+
+        <label for="subcategory">Subcategory</label>
+        <select id="subcategory" name="subcategory" required>
+            <option value="fruits">Fruits</option>
+            <option value="vegetables">Vegetables</option>
+            <option value="meat">Meat</option>
+            <option value="carbs">Carbs</option>
+            <option value="milk">Milk</option>
+            <option value="medic">Medic</option>
+            <option value="kids">Kids</option>
+            <option value="higean">Higean</option>
+        </select>
+
+        <button type="submit" class="button">Add Item</button>
+    </form>
+</div>
+</body>
+</html>

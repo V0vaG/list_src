@@ -33,6 +33,17 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 LISTS_FILE = os.path.join(DATA_DIR, 'shopping_lists.json')
 
+CATEGORY_MAP = {
+    "food": ["fruets", "vedjtibals", "meat", "carbs", "else", "milk"],
+    "pharm": ["medic", "kids", "higean"],
+    "cleaning": [],
+    "home": [],
+    "viecal": [],
+    "other": []
+}
+
+
+
 # Ensure the directory exists
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -75,9 +86,9 @@ def view_all_items():
     return render_template(
         'item_list.html',
         items=unique_items,
-        categories=all_categories,
-        subtypes=all_subtypes
+        category_map=CATEGORY_MAP
     )
+
 
 
 

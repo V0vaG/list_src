@@ -91,15 +91,10 @@
         }
 
         #editModal input[type="text"],
-        #editModal input[type="file"],
         #editModal select {
             width: 100%;
             padding: 8px;
             margin-bottom: 10px;
-        }
-
-        #editModal h3 {
-            margin-top: 0;
         }
 
         #photo-preview {
@@ -166,17 +161,15 @@
         <input type="text" name="name" id="edit-name" required>
 
         <label>Category:</label>
-        <select name="category" id="edit-category" required>
-            {% for cat in categories %}
+        <select name="category" id="edit-category" required onchange="updateSubtypes()">
+            {% for cat in category_map.keys() %}
                 <option value="{{ cat }}">{{ cat }}</option>
             {% endfor %}
         </select>
 
         <label>Subtype:</label>
         <select name="subcategory" id="edit-subcategory" required>
-            {% for subtype in subtypes %}
-                <option value="{{ subtype }}">{{ subtype }}</option>
-            {% endfor %}
+            <!-- Options will be filled by JS -->
         </select>
 
         <label>Change Image:</label>
@@ -192,59 +185,62 @@
 
 <script>
     const itemsData = {{ items|tojson }};
-    
+    const categoryMap = {{ category_map|tojson }};
+
+    function updateSubtypes(selectedSubtype = "") {
+        const catSelect = document.getElementById("edit-category");
+        const subSelect = document.getElementById("edit-subcategory");
+        const selectedCat = catSelect.value;
+
+        // Clear existing options
+        subSelect.innerHTML = "";
+
+        (categoryMap[selectedCat] || []).forEach(sub => {
+            const opt = new Option(sub, sub);
+            subSelect.appendChild(opt);
+        });
+
+        if (selectedSubtype && categoryMap[selectedCat].includes(selectedSubtype)) {
+            subSelect.value = selectedSubtype;
+        }
+    }
+
     function openEditModal(itemId) {
         const item = itemsData.find(i => i.id === itemId);
         if (!item) return;
 
-        document.getElementById('edit-id').value = item.id;
-        document.getElementById('edit-name').value = item.name;
+        document.getElementById("edit-id").value = item.id;
+        document.getElementById("edit-name").value = item.name;
 
-        const catSelect = document.getElementById('edit-category');
-        const subSelect = document.getElementById('edit-subcategory');
+        document.getElementById("edit-category").value = item.category.type;
+        updateSubtypes(item.category.subtype);
 
-        // Populate category if missing
-        if (![...catSelect.options].some(opt => opt.value === item.category.type)) {
-            const newCat = new Option(item.category.type, item.category.type);
-            catSelect.appendChild(newCat);
-        }
-        catSelect.value = item.category.type;
+        document.getElementById("edit-photo").value = "";
+        document.getElementById("photo-filename").textContent = "";
+        document.getElementById("photo-preview").style.display = "none";
 
-        // Populate subtype if missing
-        if (![...subSelect.options].some(opt => opt.value === item.category.subtype)) {
-            const newSub = new Option(item.category.subtype, item.category.subtype);
-            subSelect.appendChild(newSub);
-        }
-        subSelect.value = item.category.subtype;
-
-        // Reset image field and preview
-        document.getElementById('edit-photo').value = '';
-        document.getElementById('photo-filename').textContent = '';
-        document.getElementById('photo-preview').style.display = 'none';
-
-        document.getElementById('editItemForm').action = `/item/edit/${item.id}`;
-        document.getElementById('editModal').style.display = 'block';
+        document.getElementById("editItemForm").action = `/item/edit/${item.id}`;
+        document.getElementById("editModal").style.display = "block";
     }
 
     function closeModal() {
-        document.getElementById('editModal').style.display = 'none';
+        document.getElementById("editModal").style.display = "none";
     }
 
     function updatePhotoLabel(input) {
-        const label = document.getElementById('photo-filename');
-        const preview = document.getElementById('photo-preview');
+        const label = document.getElementById("photo-filename");
+        const preview = document.getElementById("photo-preview");
         if (input.files.length > 0) {
-            const file = input.files[0];
-            label.textContent = file.name;
             const reader = new FileReader();
             reader.onload = function (e) {
                 preview.src = e.target.result;
                 preview.style.display = 'block';
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(input.files[0]);
+            label.textContent = input.files[0].name;
         } else {
-            label.textContent = '';
             preview.style.display = 'none';
+            label.textContent = '';
         }
     }
 </script>

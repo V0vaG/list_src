@@ -46,10 +46,6 @@
             background-color: #45a049;
         }
 
-        input[type="file"] {
-            margin-right: 10px;
-        }
-
         table {
             width: 100%;
             border-collapse: collapse;
@@ -77,17 +73,51 @@
             margin-top: 20px;
             color: #777;
         }
+
+        #editModal {
+            display: none;
+            position: fixed;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        #editModal input[type="text"],
+        #editModal input[type="file"],
+        #editModal select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        #editModal h3 {
+            margin-top: 0;
+        }
+
+        #photo-preview {
+            max-height: 80px;
+            display: none;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <h2>{{ title or "All Items" }}</h2>
-    <form id="importForm" action="{{ url_for('import_items') }}" method="post" enctype="multipart/form-data" style="margin-bottom: 20px;">
-    <input type="file" id="zipfile" name="zipfile" accept=".zip" style="display: none;" onchange="document.getElementById('importForm').submit();">
-    <button type="button" class="button" onclick="document.getElementById('zipfile').click();">Import Items</button>
-    <a href="{{ url_for('export_items') }}" class="button">Export Items</a>
-</form>
 
+    <form id="importForm" action="{{ url_for('import_items') }}" method="post" enctype="multipart/form-data" style="margin-bottom: 20px;">
+        <input type="file" id="zipfile" name="zipfile" accept=".zip" style="display: none;" onchange="document.getElementById('importForm').submit();">
+        <button type="button" class="button" onclick="document.getElementById('zipfile').click();">Import Items</button>
+        <a href="{{ url_for('export_items') }}" class="button">Export Items</a>
+    </form>
 
     <div class="top-buttons">
         <a href="{{ url_for('add_item_page') }}" class="button">➕ Add Item</a>
@@ -109,7 +139,7 @@
             </thead>
             <tbody>
                 {% for item in items %}
-                    <tr>
+                    <tr onclick="openEditModal('{{ item.id }}')">
                         <td><img src="{{ item.photo }}" alt="Item Image"></td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.category.type }}</td>
@@ -125,5 +155,98 @@
         </table>
     {% endif %}
 </div>
+
+<!-- Edit Modal -->
+<div id="editModal">
+    <h3>Edit Item</h3>
+    <form id="editItemForm" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="id" id="edit-id">
+
+        <label>Name:</label>
+        <input type="text" name="name" id="edit-name" required>
+
+        <label>Category:</label>
+        <select name="category" id="edit-category" required>
+            {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Subtype:</label>
+        <select name="subcategory" id="edit-subcategory" required>
+            {% for subtype in subtypes %}
+                <option value="{{ subtype }}">{{ subtype }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Change Image:</label>
+        <input type="file" name="photo" id="edit-photo" accept="image/*" style="display: none;" onchange="updatePhotoLabel(this)">
+        <button type="button" class="button" onclick="document.getElementById('edit-photo').click();">📷 Change Image</button>
+        <span id="photo-filename" style="font-size: 12px; margin-left: 10px;"></span>
+        <img id="photo-preview" src="" alt="Preview">
+
+        <button type="submit" class="button">💾 Save</button>
+        <button type="button" class="button" onclick="closeModal()">Cancel</button>
+    </form>
+</div>
+
+<script>
+    const itemsData = {{ items|tojson }};
+    
+    function openEditModal(itemId) {
+        const item = itemsData.find(i => i.id === itemId);
+        if (!item) return;
+
+        document.getElementById('edit-id').value = item.id;
+        document.getElementById('edit-name').value = item.name;
+
+        const catSelect = document.getElementById('edit-category');
+        const subSelect = document.getElementById('edit-subcategory');
+
+        // Populate category if missing
+        if (![...catSelect.options].some(opt => opt.value === item.category.type)) {
+            const newCat = new Option(item.category.type, item.category.type);
+            catSelect.appendChild(newCat);
+        }
+        catSelect.value = item.category.type;
+
+        // Populate subtype if missing
+        if (![...subSelect.options].some(opt => opt.value === item.category.subtype)) {
+            const newSub = new Option(item.category.subtype, item.category.subtype);
+            subSelect.appendChild(newSub);
+        }
+        subSelect.value = item.category.subtype;
+
+        // Reset image field and preview
+        document.getElementById('edit-photo').value = '';
+        document.getElementById('photo-filename').textContent = '';
+        document.getElementById('photo-preview').style.display = 'none';
+
+        document.getElementById('editItemForm').action = `/item/edit/${item.id}`;
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    function updatePhotoLabel(input) {
+        const label = document.getElementById('photo-filename');
+        const preview = document.getElementById('photo-preview');
+        if (input.files.length > 0) {
+            const file = input.files[0];
+            label.textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            label.textContent = '';
+            preview.style.display = 'none';
+        }
+    }
+</script>
 </body>
 </html>

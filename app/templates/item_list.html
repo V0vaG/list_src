@@ -102,6 +102,15 @@
             display: none;
             margin-top: 10px;
         }
+
+        #delete-button-container {
+            margin-top: 10px;
+            display: none;
+        }
+
+        #delete-button-container .button {
+            background-color: #e53935;
+        }
     </style>
 </head>
 <body>
@@ -139,11 +148,7 @@
                         <td>{{ item.name }}</td>
                         <td>{{ item.category.type }}</td>
                         <td>{{ item.category.subtype }}</td>
-                        <td>
-                            <form action="{{ url_for('delete_independent_item', item_id=item.id) }}" method="POST">
-                                <button type="submit" class="button" onclick="return confirm('Delete this item?')">🗑 Delete</button>
-                            </form>
-                        </td>
+                        <td>-</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -172,7 +177,6 @@
             <!-- Options will be filled by JS -->
         </select>
 
-        <label>Image:</label>
         <input type="file" name="photo" id="edit-photo" accept="image/*" style="display: none;" onchange="updatePhotoLabel(this)">
         <button type="button" class="button" onclick="document.getElementById('edit-photo').click();">📷 Upload Image</button>
         <span id="photo-filename" style="font-size: 12px; margin-left: 10px;"></span>
@@ -181,6 +185,12 @@
         <button type="submit" class="button">💾 Save</button>
         <button type="button" class="button" onclick="closeModal()">Cancel</button>
     </form>
+
+    <div id="delete-button-container">
+        <form id="deleteForm" method="POST">
+            <button type="submit" class="button">🗑 Delete</button>
+        </form>
+    </div>
 </div>
 
 <script>
@@ -207,6 +217,8 @@
     function openEditModal(itemId) {
         const form = document.getElementById("editItemForm");
         const title = document.getElementById("modal-title");
+        const deleteContainer = document.getElementById("delete-button-container");
+        const deleteForm = document.getElementById("deleteForm");
 
         if (itemId) {
             const item = itemsData.find(i => i.id === itemId);
@@ -218,12 +230,15 @@
             updateSubtypes(item.category.subtype);
 
             form.action = `/item/edit/${item.id}`;
+            deleteForm.action = `/item/delete/${item.id}`;
+            deleteContainer.style.display = "block";
             title.textContent = "Edit Item";
         } else {
             form.reset();
             document.getElementById("edit-id").value = "";
             updateSubtypes();
             form.action = "/add_item";
+            deleteContainer.style.display = "none";
             title.textContent = "Add Item";
         }
 

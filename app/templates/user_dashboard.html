@@ -167,6 +167,10 @@
   {% if role == "root" %}
     <a href="{{ url_for('root_dashboard') }}" class="button">Go to Root Dashboard</a>
   {% endif %}
+  {% if role == "root" or user_data.edit_item_list %}
+    <a href="{{ url_for('view_all_items') }}" class="button">View Item List</a>
+  {% endif %}
+
 
   <a href="{{ url_for('new_list') }}" class="button">Create List</a>
   <a href="{{ url_for('logout') }}" class="button">Logout</a>

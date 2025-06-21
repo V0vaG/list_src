@@ -48,6 +48,20 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 # ------------------ Helpers ------------------
 
+def ensure_edit_permission_field():
+    users = load_users()
+    modified = False
+    if len(users) > 1 and "users" in users[1]:
+        for user in users[1]["users"]:
+            if "edit_item_list" not in user:
+                user["edit_item_list"] = False
+                modified = True
+    if modified:
+        save_users(users)
+
+
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -61,8 +75,12 @@ def login_required(f):
 @login_required
 def view_all_items():
     if not session.get('is_root'):
-        flash("Access denied", "danger")
-        return redirect(url_for('user_dashboard'))
+        username = session.get('user_id')
+        users = load_users()
+        user_data = next((u for u in users[1]["users"] if u["username"] == username), None)
+        if not user_data or not user_data.get("edit_item_list", False):
+            flash("Access denied", "danger")
+            return redirect(url_for('user_dashboard'))
 
     all_items = load_items()
 
@@ -394,6 +412,22 @@ def login():
         flash("Invalid credentials.", "danger")
     return render_template('login.html', app_version=app_version)
 
+@app.route('/toggle_edit_permission', methods=['POST'])
+@login_required
+def toggle_edit_permission():
+    if not session.get('is_root'):
+        flash("Access denied", "danger")
+        return redirect(url_for('user_dashboard'))
+
+    username = request.form.get('username')
+    users = load_users()
+    for user in users[1]["users"]:
+        if user["username"] == username:
+            user["edit_item_list"] = not user.get("edit_item_list", False)
+            break
+    save_users(users)
+    return redirect(url_for('root_dashboard'))
+
 @app.route('/root_dashboard')
 @login_required
 def root_dashboard():
@@ -414,15 +448,9 @@ def delete_list():
     flash("List deleted successfully.", "success")
     return redirect(url_for('user_dashboard'))
 
-
-
-
-
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-
 
 @app.route('/remove_user', methods=['POST'])
 def remove_user_route():
@@ -438,8 +466,22 @@ def user_dashboard():
     role = "root" if session.get('is_root') else "user"
     lists = load_lists()
     user_lists = [lst for lst in lists if lst['created_by'] == username]
-    return render_template('user_dashboard.html', username=username, role=role, user_lists=user_lists)
+    users_data = load_users()
+    user_data = {}
 
+    if not session.get('is_root'):
+        for u in users_data[1]["users"]:
+            if u["username"] == username:
+                user_data = u
+                break
+
+    return render_template(
+        'user_dashboard.html',
+        username=username,
+        role=role,
+        user_lists=user_lists,
+        user_data=user_data
+    )
 
 @app.route('/list/<list_id>')
 @login_required
@@ -450,8 +492,6 @@ def view_list_shopping(list_id):
         flash('List not found.', 'danger')
         return redirect(url_for('show_lists'))
     return render_template('view_list.html', list_data=selected)
-
-
 
 @app.route('/logout')
 @login_required
@@ -467,7 +507,6 @@ def show_lists():
     lists = load_lists()
     user_lists = [lst for lst in lists if lst['created_by'] == user]
     return render_template('user_dashboard.html', lists=user_lists, user=user)
-
 
 @app.route('/list/new', methods=['GET', 'POST'])
 @login_required
@@ -498,9 +537,6 @@ def new_list():
     session['current_list_id'] = new_list_id
     flash('New list created!', 'success')
     return redirect(url_for('view_list', list_id=new_list_id))
-
-
-
 
 @app.route('/list/<list_id>')
 @login_required
@@ -557,7 +593,6 @@ def finish_list(list_id):
     flash('List marked as finished.', 'info')
     return redirect(url_for('user_dashboard'))
 
-
 @app.route('/item/delete/<list_id>/<item_id>', methods=['POST'])
 @login_required
 def delete_item(list_id, item_id):
@@ -569,8 +604,6 @@ def delete_item(list_id, item_id):
     save_lists(lists)
     flash('Item deleted.', 'warning')
     return redirect(url_for('view_list', list_id=list_id))
-
-
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)

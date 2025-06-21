@@ -172,6 +172,8 @@
         <tr>
           <th>Username</th>
           <th>Action</th>
+          <th>Edit Item List</th>
+
         </tr>
       </thead>
       <tbody>
@@ -184,7 +186,14 @@
                 <button type="submit" class="delete-button">Delete</button>
               </form>
             </td>
+            <td>
+              <form method="POST" action="{{ url_for('toggle_edit_permission') }}">
+                <input type="hidden" name="username" value="{{ user.username }}">
+                <input type="checkbox" name="edit_item_list" onchange="this.form.submit()" {% if user.edit_item_list %}checked{% endif %}>
+              </form>
+            </td>
           </tr>
+
         {% endfor %}
       </tbody>
     </table>

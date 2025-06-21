@@ -16,6 +16,7 @@ from flask import send_file
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
+app_version = os.getenv('VERSION', '0.0.0')
 
 # Set up paths
 alias = "list"
@@ -87,11 +88,6 @@ def view_all_items():
         category_map=CATEGORY_MAP
     )
 
-
-
-
-
-
 @app.route('/export_items')
 @login_required
 def export_items():
@@ -149,7 +145,6 @@ def import_items():
 
     return redirect(url_for('view_all_items'))
 
-
 def load_items():
     if os.path.exists(ITEMS_FILE):
         with open(ITEMS_FILE, 'r') as f:
@@ -166,8 +161,6 @@ def load_items():
         return unique
 
     return []
-
-
 
 def save_items(items):
     with open(ITEMS_FILE, 'w') as f:
@@ -200,8 +193,6 @@ def edit_item(item_id):
     flash('Item updated!', 'success')
     return redirect(url_for('view_all_items'))
 
-
-
 @app.route('/list/<list_id>/rename', methods=['POST'])
 @login_required
 def rename_list(list_id):
@@ -214,7 +205,6 @@ def rename_list(list_id):
     save_lists(lists)
     flash("List name updated!", "success")
     return redirect(url_for('view_list_shopping', list_id=list_id))
-
 
 @app.route('/choose_item/<list_id>', methods=['GET', 'POST'])
 @login_required
@@ -243,9 +233,6 @@ def choose_item(list_id):
     items = load_items()
     categories = sorted(set(item['category']['type'] for item in items if 'category' in item))
     return render_template('choose_item.html', items=items, categories=categories, list_id=list_id)
-
-
-
 
 @app.route('/add_item', methods=['GET', 'POST'])
 @login_required
@@ -284,8 +271,6 @@ def add_item_page():
         return redirect(url_for('view_all_items'))
 
     return render_template('add_item.html')
-
-
 
 @app.route('/item/delete/<item_id>', methods=['POST'])
 @login_required
@@ -407,7 +392,7 @@ def login():
                 flash("Logged in successfully.", "success")
                 return redirect(url_for('user_dashboard'))
         flash("Invalid credentials.", "danger")
-    return render_template('login.html')
+    return render_template('login.html', app_version=app_version)
 
 @app.route('/root_dashboard')
 @login_required

@@ -12,6 +12,7 @@ from werkzeug.utils import secure_filename
 from zipfile import ZipFile
 import io
 from flask import send_file
+from collections import defaultdict
 
 
 app = Flask(__name__)

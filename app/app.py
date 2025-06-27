@@ -247,7 +247,7 @@ def choose_item(list_id):
                     break
             save_lists(lists)
 
-        return redirect(url_for('view_list', list_id=list_id))
+        return redirect(url_for('view_list_shopping', list_id=list_id))
 
     items = load_items()
     categories = sorted(set(item['category']['type'] for item in items if 'category' in item))
@@ -562,41 +562,8 @@ def new_list():
 
     session['current_list_id'] = new_list_id
     flash('New list created!', 'success')
-    return redirect(url_for('view_list', list_id=new_list_id))
+    return redirect(url_for('view_list_shopping', list_id=new_list_id))
 
-
-@app.route('/list/<list_id>')
-@login_required
-def view_list(list_id):
-    import unicodedata
-
-    def normalize(value):
-        if not isinstance(value, str):
-            return "לא מוגדר"
-        return unicodedata.normalize("NFKC", value.strip())
-
-    lists = load_lists()
-    selected = next((lst for lst in lists if lst['id'] == list_id), None)
-    if not selected:
-        flash('List not found.', 'danger')
-        return redirect(url_for('show_lists'))
-
-    grouped = defaultdict(lambda: defaultdict(list))
-
-    for item in selected.get('items', []):
-        cat = normalize(item.get('category', {}).get('type'))
-        sub = normalize(item.get('category', {}).get('subtype'))
-        grouped[cat][sub].append(item)
-
-    grouped_items = {
-        cat: {
-            sub: sorted(items, key=lambda i: i.get('name', ''))
-            for sub, items in sorted(sub_map.items())
-        }
-        for cat, sub_map in sorted(grouped.items())
-    }
-
-    return render_template('view_list.html', list_data=selected, grouped_items=grouped_items)
 
 
 @app.route('/list/<list_id>/add_item', methods=['POST'])
@@ -628,7 +595,7 @@ def add_item_to_list(list_id):
 
     save_lists(lists)
     flash('Item added.', 'success')
-    return redirect(url_for('view_list', list_id=list_id))
+    return redirect(url_for('view_list_shopping', list_id=list_id))
 
 @app.route('/list/<list_id>/finish', methods=['POST'])
 @login_required
@@ -654,7 +621,7 @@ def delete_item(list_id, item_id):
             break
     save_lists(lists)
     flash('Item deleted.', 'warning')
-    return redirect(url_for('view_list', list_id=list_id))
+    return redirect(url_for('view_list_shopping', list_id=list_id))
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)

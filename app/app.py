@@ -229,6 +229,7 @@ def choose_item(list_id):
     if request.method == 'POST':
         item_id = request.form.get('item_id')
         amount = int(request.form.get('amount', 1))
+        unit = request.form.get('unit', 'amount')  # <-- get unit from form, default to 'amount'
 
         items = load_items()
         selected_item = next((item for item in items if item['id'] == item_id), None)
@@ -237,6 +238,7 @@ def choose_item(list_id):
             item_copy = selected_item.copy()
             item_copy['id'] = str(uuid.uuid4())
             item_copy['amount'] = amount
+            item_copy['unit'] = unit  # <-- store unit in the item
 
             lists = load_lists()
             for lst in lists:

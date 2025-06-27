@@ -13,7 +13,7 @@ from zipfile import ZipFile
 import io
 from flask import send_file
 from collections import defaultdict
-
+import unicodedata
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -59,8 +59,6 @@ def ensure_edit_permission_field():
                 modified = True
     if modified:
         save_users(users)
-
-
 
 
 def login_required(f):
@@ -247,7 +245,7 @@ def choose_item(list_id):
                     break
             save_lists(lists)
 
-        return redirect(url_for('view_list', list_id=list_id))
+        return redirect(url_for('view_list_shopping', list_id=list_id))
 
     items = load_items()
     categories = sorted(set(item['category']['type'] for item in items if 'category' in item))
@@ -299,7 +297,6 @@ def delete_independent_item(item_id):
     save_items(items)
     flash("Item deleted.", "info")
     return redirect(url_for('view_all_items'))
-
 
 def load_users():
     if os.path.exists(USERS_FILE):
@@ -487,12 +484,36 @@ def user_dashboard():
 @app.route('/list/<list_id>')
 @login_required
 def view_list_shopping(list_id):
+    def normalize(val):
+        return unicodedata.normalize("NFKC", str(val).strip()) if val else "לא מוגדר"
+
     lists = load_lists()
     selected = next((lst for lst in lists if lst['id'] == list_id), None)
     if not selected:
-        flash('List not found.', 'danger')
-        return redirect(url_for('show_lists'))
-    return render_template('view_list.html', list_data=selected)
+        flash("List not found.", "danger")
+        return redirect(url_for("show_lists"))
+
+    grouped = defaultdict(lambda: defaultdict(list))
+    for item in selected.get("items", []):
+        raw_type = item.get("category", {}).get("type")
+        raw_sub = item.get("category", {}).get("subtype")
+        cat = normalize(raw_type)
+        sub = normalize(raw_sub)
+
+        print(f"📦 GROUPING ITEM: name={item.get('name')} | type={cat} | subtype={sub}")
+        grouped[cat][sub].append(item)
+
+    grouped_items = {
+        cat: {
+            sub: sorted(items, key=lambda i: i.get("name", ""))
+            for sub, items in sorted(sub_map.items())
+        }
+        for cat, sub_map in sorted(grouped.items())
+    }
+
+    print(f"✅ FINAL GROUPED CATEGORIES: {list(grouped_items.keys())}")
+
+    return render_template("view_list.html", list_data=selected, grouped_items=grouped_items)
 
 @app.route('/logout')
 @login_required
@@ -500,7 +521,6 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# ---------- Shopping List Routes ----------
 @app.route('/lists')
 @login_required
 def show_lists():
@@ -537,17 +557,7 @@ def new_list():
 
     session['current_list_id'] = new_list_id
     flash('New list created!', 'success')
-    return redirect(url_for('view_list', list_id=new_list_id))
-
-@app.route('/list/<list_id>')
-@login_required
-def view_list(list_id):
-    lists = load_lists()
-    selected = next((lst for lst in lists if lst['id'] == list_id), None)
-    if not selected:
-        flash('List not found.', 'danger')
-        return redirect(url_for('show_lists'))
-    return render_template('view_list.html', list_data=selected)
+    return redirect(url_for('view_list_shopping', list_id=new_list_id))
 
 @app.route('/list/<list_id>/add_item', methods=['POST'])
 @login_required
@@ -578,7 +588,7 @@ def add_item_to_list(list_id):
 
     save_lists(lists)
     flash('Item added.', 'success')
-    return redirect(url_for('view_list', list_id=list_id))
+    return redirect(url_for('view_list_shopping', list_id=list_id))
 
 @app.route('/list/<list_id>/finish', methods=['POST'])
 @login_required
@@ -604,7 +614,7 @@ def delete_item(list_id, item_id):
             break
     save_lists(lists)
     flash('Item deleted.', 'warning')
-    return redirect(url_for('view_list', list_id=list_id))
+    return redirect(url_for('view_list_shopping', list_id=list_id))
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)

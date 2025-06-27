@@ -22,6 +22,18 @@
       margin-top: 0;
     }
 
+    h3 {
+      margin-top: 40px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+
+    h4 {
+      margin-left: 10px;
+      margin-top: 20px;
+      color: #555;
+    }
+
     .meta {
       margin-bottom: 20px;
     }
@@ -30,7 +42,8 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 20px;
-      margin-top: 20px;
+      margin-top: 10px;
+      margin-bottom: 20px;
     }
 
     .card {
@@ -97,6 +110,16 @@
       align-items: center;
       gap: 10px;
     }
+
+    .debug {
+      background: #fff5f5;
+      color: #c00;
+      border: 1px dashed #c00;
+      padding: 10px;
+      margin: 20px 0;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -115,25 +138,38 @@
       <div class="meta">
         <p><strong>Created:</strong> {{ list_data.created_at }}</p>
         <p><strong>Created By:</strong> {{ list_data.created_by }}</p>
+        <p><strong>Total Items:</strong> {{ list_data['items'] | length }}</p>
+        <p><strong>Grouped Categories:</strong> {{ grouped_items | length }}</p>
       </div>
 
-      {% if list_data.items %}
-        <div class="grid">
-          {% for item in list_data['items'] %}
-            <form method="POST" action="{{ url_for('delete_item', list_id=list_data.id, item_id=item.id) }}">
-              <div class="card" onclick="this.closest('form').submit();">
-                {% if item.photo %}
-                  <img src="{{ url_for('uploaded_file', filename=item.photo) }}" class="item-image">
-                {% endif %}
-                <div><strong>{{ item.name }}</strong></div>
-                <div>Amount: {{ item.amount if 'amount' in item else 1 }}</div>
-              </div>
-            </form>
+      {% if grouped_items %}
+        {% for cat, subtypes in grouped_items.items() %}
+          <h3>{{ cat }}</h3>
+          {% for subtype, items in subtypes.items() %}
+            <h4>{{ subtype }}</h4>
+            <div class="grid">
+              {% for item in items %}
+                <form method="POST" action="{{ url_for('delete_item', list_id=list_data.id, item_id=item.id) }}">
+                  <div class="card" onclick="this.closest('form').submit();">
+                    {% if item.photo %}
+                      <img src="{{ url_for('uploaded_file', filename=item.photo) }}" class="item-image">
+                    {% endif %}
+                    <div><strong>{{ item.name }}</strong></div>
+                    <div>Amount: {{ item.amount if 'amount' in item else 1 }}</div>
+                  </div>
+                </form>
+              {% endfor %}
+            </div>
           {% endfor %}
-        </div>
+        {% endfor %}
       {% else %}
         <p>No items in this list yet.</p>
       {% endif %}
+
+      <!-- <div class="debug">
+        DEBUG: Raw Items JSON
+        {{ list_data['items'] | tojson(indent=2) }}
+      </div> -->
     {% else %}
       <p>List not found.</p>
     {% endif %}

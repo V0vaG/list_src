@@ -61,8 +61,6 @@ def ensure_edit_permission_field():
         save_users(users)
 
 
-
-
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -300,7 +298,6 @@ def delete_independent_item(item_id):
     flash("Item deleted.", "info")
     return redirect(url_for('view_all_items'))
 
-
 def load_users():
     if os.path.exists(USERS_FILE):
         with open(USERS_FILE, 'r') as file:
@@ -518,14 +515,12 @@ def view_list_shopping(list_id):
 
     return render_template("view_list.html", list_data=selected, grouped_items=grouped_items)
 
-
 @app.route('/logout')
 @login_required
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# ---------- Shopping List Routes ----------
 @app.route('/lists')
 @login_required
 def show_lists():
@@ -563,8 +558,6 @@ def new_list():
     session['current_list_id'] = new_list_id
     flash('New list created!', 'success')
     return redirect(url_for('view_list_shopping', list_id=new_list_id))
-
-
 
 @app.route('/list/<list_id>/add_item', methods=['POST'])
 @login_required

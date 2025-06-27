@@ -8,6 +8,16 @@
       background-color: #f5f5f5;
       padding: 20px;
     }
+    .styled-button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
     .container {
       background: white;
       padding: 30px;
@@ -133,6 +143,7 @@
     <form method="POST" id="itemForm">
       <input type="hidden" name="item_id" id="selectedItem">
       <input type="hidden" name="amount" id="selectedAmount">
+      <input type="hidden" name="unit" id="selectedUnit" value="amount">
       <div class="grid">
         {% for item in items %}
           <div class="item-card" onclick="showNumpad('{{ item.id }}')" data-name="{{ item.name }}" data-category="{{ item.category.type }}">
@@ -146,32 +157,44 @@
   </div>
 
   <!-- Overlay + Modal -->
-<div id="overlay"></div>
-<div class="numpad-modal" id="numpadModal">
-  <div class="numpad-display" id="numpadDisplay">*</div>
-  <div class="numpad-buttons">
-    <button onclick="appendNumpad('1')">1</button>
-    <button onclick="appendNumpad('2')">2</button>
-    <button onclick="appendNumpad('3')">3</button>
-    <button onclick="appendNumpad('4')">4</button>
-    <button onclick="appendNumpad('5')">5</button>
-    <button onclick="appendNumpad('6')">6</button>
-    <button onclick="appendNumpad('7')">7</button>
-    <button onclick="appendNumpad('8')">8</button>
-    <button onclick="appendNumpad('9')">9</button>
-    <button onclick="clearNumpad()">C</button>
-    <button onclick="appendNumpad('0')">0</button>
-    <button onclick="deleteNumpad()">⌫</button>
-  </div>
-  <div class="numpad-actions">
-    <button onclick="cancelNumpad()" style="background: #ccc;">Cancel</button>
-    <button onclick="submitNumpad()" style="background: #4CAF50; color: white;">Add</button>
-  </div>
-</div>
+  <div id="overlay"></div>
+  <div class="numpad-modal" id="numpadModal">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <button id="unitToggle" type="button" onclick="toggleUnit()" class="styled-button">יחידות</button>
+      <div class="numpad-display" id="numpadDisplay">*</div>
+    </div>
 
+    <div class="numpad-buttons">
+      <button type="button" onclick="appendNumpad('1')">1</button>
+      <button type="button" onclick="appendNumpad('2')">2</button>
+      <button type="button" onclick="appendNumpad('3')">3</button>
+      <button type="button" onclick="appendNumpad('4')">4</button>
+      <button type="button" onclick="appendNumpad('5')">5</button>
+      <button type="button" onclick="appendNumpad('6')">6</button>
+      <button type="button" onclick="appendNumpad('7')">7</button>
+      <button type="button" onclick="appendNumpad('8')">8</button>
+      <button type="button" onclick="appendNumpad('9')">9</button>
+      <button type="button" onclick="clearNumpad()">C</button>
+      <button type="button" onclick="appendNumpad('0')">0</button>
+      <button type="button" onclick="deleteNumpad()">⌫</button>
+    </div>
+
+    <div class="numpad-actions">
+      <button type="button" onclick="cancelNumpad()" style="background: #ccc;">Cancel</button>
+      <button type="button" onclick="submitNumpad()" style="background: #4CAF50; color: white;">Add</button>
+    </div>
+  </div>
 
   <script>
     let selectedItemId = null;
+    let selectedUnit = "amount"; // default
+
+    function toggleUnit() {
+      selectedUnit = selectedUnit === "amount" ? "kg" : "amount";
+      document.getElementById('unitToggle').innerText = selectedUnit === "amount" ? "יחידות" : "ק״ג";
+      document.getElementById('selectedUnit').value = selectedUnit;
+    }
+
 
     function filterItems() {
       const search = document.getElementById("searchInput").value.toLowerCase();
@@ -183,42 +206,41 @@
         const cat = card.dataset.category.toLowerCase();
         const matchName = name.includes(search);
         const matchCat = !category || cat === category;
-
         card.classList.toggle("hidden", !(matchName && matchCat));
       });
     }
 
-  function showNumpad(itemId) {
-    selectedItemId = itemId;
-    clearNumpad();  // use new default
-    document.getElementById('overlay').style.display = 'block';
-    document.getElementById('numpadModal').style.display = 'block';
-  }
-
-  function appendNumpad(digit) {
-    const display = document.getElementById('numpadDisplay');
-    if (display.innerText === '*' || display.innerText === '0') {
-      display.innerText = digit;
-    } else {
-      display.innerText += digit;
+    function showNumpad(itemId) {
+      selectedItemId = itemId;
+      clearNumpad();
+      document.getElementById('overlay').style.display = 'block';
+      document.getElementById('numpadModal').style.display = 'block';
     }
-  }
 
-  function deleteNumpad() {
-    const display = document.getElementById('numpadDisplay');
-    const newText = display.innerText.slice(0, -1);
-    display.innerText = newText.length ? newText : '*';
-  }
+    function appendNumpad(digit) {
+      const display = document.getElementById('numpadDisplay');
+      if (display.innerText === '*' || display.innerText === '0') {
+        display.innerText = digit;
+      } else {
+        display.innerText += digit;
+      }
+    }
 
-  function clearNumpad() {
-    document.getElementById('numpadDisplay').innerText = '*';
-  }
+    function deleteNumpad() {
+      const display = document.getElementById('numpadDisplay');
+      const newText = display.innerText.slice(0, -1);
+      display.innerText = newText.length ? newText : '*';
+    }
 
-  function cancelNumpad() {
-    document.getElementById('numpadModal').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-    selectedItemId = null;
-  }
+    function clearNumpad() {
+      document.getElementById('numpadDisplay').innerText = '*';
+    }
+
+    function cancelNumpad() {
+      document.getElementById('numpadModal').style.display = 'none';
+      document.getElementById('overlay').style.display = 'none';
+      selectedItemId = null;
+    }
 
     function submitNumpad() {
       const text = document.getElementById('numpadDisplay').innerText;
@@ -226,6 +248,7 @@
       if (!isNaN(amount) && amount > 0 && selectedItemId) {
         document.getElementById('selectedItem').value = selectedItemId;
         document.getElementById('selectedAmount').value = amount;
+        document.getElementById('selectedUnit').value = selectedUnit;
         document.getElementById('itemForm').submit();
       }
     }

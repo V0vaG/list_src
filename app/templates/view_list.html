@@ -155,7 +155,15 @@
                       <img src="{{ url_for('uploaded_file', filename=item.photo) }}" class="item-image">
                     {% endif %}
                     <div><strong>{{ item.name }}</strong></div>
-                    <div>Amount: {{ item.amount if 'amount' in item else 1 }}</div>
+                  <div>
+                    {{ item.amount if item.amount else 1 }}
+                    {% if item.unit %}
+                      {% if item.unit == 'kg' %}ק״ג{% elif item.unit == 'amount' %}יחידות{% else %}{{ item.unit }}{% endif %}
+                    {% endif %}
+                  </div>
+
+
+
                   </div>
                 </form>
               {% endfor %}

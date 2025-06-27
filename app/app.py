@@ -13,7 +13,7 @@ from zipfile import ZipFile
 import io
 from flask import send_file
 from collections import defaultdict
-
+import unicodedata
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -487,12 +487,37 @@ def user_dashboard():
 @app.route('/list/<list_id>')
 @login_required
 def view_list_shopping(list_id):
+    def normalize(val):
+        return unicodedata.normalize("NFKC", str(val).strip()) if val else "לא מוגדר"
+
     lists = load_lists()
     selected = next((lst for lst in lists if lst['id'] == list_id), None)
     if not selected:
-        flash('List not found.', 'danger')
-        return redirect(url_for('show_lists'))
-    return render_template('view_list.html', list_data=selected)
+        flash("List not found.", "danger")
+        return redirect(url_for("show_lists"))
+
+    grouped = defaultdict(lambda: defaultdict(list))
+    for item in selected.get("items", []):
+        raw_type = item.get("category", {}).get("type")
+        raw_sub = item.get("category", {}).get("subtype")
+        cat = normalize(raw_type)
+        sub = normalize(raw_sub)
+
+        print(f"📦 GROUPING ITEM: name={item.get('name')} | type={cat} | subtype={sub}")
+        grouped[cat][sub].append(item)
+
+    grouped_items = {
+        cat: {
+            sub: sorted(items, key=lambda i: i.get("name", ""))
+            for sub, items in sorted(sub_map.items())
+        }
+        for cat, sub_map in sorted(grouped.items())
+    }
+
+    print(f"✅ FINAL GROUPED CATEGORIES: {list(grouped_items.keys())}")
+
+    return render_template("view_list.html", list_data=selected, grouped_items=grouped_items)
+
 
 @app.route('/logout')
 @login_required
@@ -539,32 +564,40 @@ def new_list():
     flash('New list created!', 'success')
     return redirect(url_for('view_list', list_id=new_list_id))
 
+
 @app.route('/list/<list_id>')
 @login_required
 def view_list(list_id):
+    import unicodedata
+
+    def normalize(value):
+        if not isinstance(value, str):
+            return "לא מוגדר"
+        return unicodedata.normalize("NFKC", value.strip())
+
     lists = load_lists()
     selected = next((lst for lst in lists if lst['id'] == list_id), None)
     if not selected:
         flash('List not found.', 'danger')
         return redirect(url_for('show_lists'))
 
-    # Group items by category and subtype
-    grouped_items = defaultdict(lambda: defaultdict(list))
-    for item in selected['items']:
-        cat = item['category']['type']
-        sub = item['category']['subtype']
-        grouped_items[cat][sub].append(item)
+    grouped = defaultdict(lambda: defaultdict(list))
 
-    # Sort categories and subcategories
-    sorted_grouped = {
+    for item in selected.get('items', []):
+        cat = normalize(item.get('category', {}).get('type'))
+        sub = normalize(item.get('category', {}).get('subtype'))
+        grouped[cat][sub].append(item)
+
+    grouped_items = {
         cat: {
-            sub: sorted(items, key=lambda i: i['name'])  # sort items by name
+            sub: sorted(items, key=lambda i: i.get('name', ''))
             for sub, items in sorted(sub_map.items())
         }
-        for cat, sub_map in sorted(grouped_items.items())
+        for cat, sub_map in sorted(grouped.items())
     }
 
-    return render_template('view_list.html', list_data=selected, grouped_items=sorted_grouped)
+    return render_template('view_list.html', list_data=selected, grouped_items=grouped_items)
+
 
 @app.route('/list/<list_id>/add_item', methods=['POST'])
 @login_required

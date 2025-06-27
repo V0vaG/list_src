@@ -110,6 +110,16 @@
       align-items: center;
       gap: 10px;
     }
+
+    .debug {
+      background: #fff5f5;
+      color: #c00;
+      border: 1px dashed #c00;
+      padding: 10px;
+      margin: 20px 0;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -128,6 +138,8 @@
       <div class="meta">
         <p><strong>Created:</strong> {{ list_data.created_at }}</p>
         <p><strong>Created By:</strong> {{ list_data.created_by }}</p>
+        <p><strong>Total Items:</strong> {{ list_data['items'] | length }}</p>
+        <p><strong>Grouped Categories:</strong> {{ grouped_items | length }}</p>
       </div>
 
       {% if grouped_items %}
@@ -153,6 +165,11 @@
       {% else %}
         <p>No items in this list yet.</p>
       {% endif %}
+
+      <!-- <div class="debug">
+        DEBUG: Raw Items JSON
+        {{ list_data['items'] | tojson(indent=2) }}
+      </div> -->
     {% else %}
       <p>List not found.</p>
     {% endif %}

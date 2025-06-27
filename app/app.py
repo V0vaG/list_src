@@ -547,7 +547,24 @@ def view_list(list_id):
     if not selected:
         flash('List not found.', 'danger')
         return redirect(url_for('show_lists'))
-    return render_template('view_list.html', list_data=selected)
+
+    # Group items by category and subtype
+    grouped_items = defaultdict(lambda: defaultdict(list))
+    for item in selected['items']:
+        cat = item['category']['type']
+        sub = item['category']['subtype']
+        grouped_items[cat][sub].append(item)
+
+    # Sort categories and subcategories
+    sorted_grouped = {
+        cat: {
+            sub: sorted(items, key=lambda i: i['name'])  # sort items by name
+            for sub, items in sorted(sub_map.items())
+        }
+        for cat, sub_map in sorted(grouped_items.items())
+    }
+
+    return render_template('view_list.html', list_data=selected, grouped_items=sorted_grouped)
 
 @app.route('/list/<list_id>/add_item', methods=['POST'])
 @login_required

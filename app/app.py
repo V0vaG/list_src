@@ -102,7 +102,8 @@ def view_all_items():
     return render_template(
         'item_list.html',
         items=unique_items,
-        category_map=CATEGORY_MAP
+        category_map=CATEGORY_MAP,
+        app_version=app_version
     )
 
 @app.route('/export_items')
@@ -251,7 +252,7 @@ def choose_item(list_id):
 
     items = load_items()
     categories = sorted(set(item['category']['type'] for item in items if 'category' in item))
-    return render_template('choose_item.html', items=items, categories=categories, list_id=list_id)
+    return render_template('choose_item.html', items=items, categories=categories, list_id=list_id, app_version=app_version)
 
 @app.route('/add_item', methods=['GET', 'POST'])
 @login_required
@@ -289,7 +290,7 @@ def add_item_page():
         flash("Item added successfully!", "success")
         return redirect(url_for('view_all_items'))
 
-    return render_template('add_item.html')
+    return render_template('add_item.html', app_version=app_version)
 
 @app.route('/item/delete/<item_id>', methods=['POST'])
 @login_required
@@ -373,7 +374,7 @@ def register_root():
             save_root_user(username, password)
             flash('Root user registered successfully!', 'success')
             return redirect(url_for('login'))
-    return render_template('register_root.html')
+    return render_template('register_root.html', app_version=app_version)
 
 @app.route('/register_user', methods=['GET', 'POST'])
 def register_user():
@@ -387,7 +388,7 @@ def register_user():
             save_user(username, password)
             flash('User registered successfully!', 'success')
             return redirect(url_for('login'))
-    return render_template('register_user.html')
+    return render_template('register_user.html', app_version=app_version)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -436,7 +437,7 @@ def root_dashboard():
         return redirect(url_for('user_dashboard'))
     users_data = load_users()
     user_list = users_data[1]['users'] if len(users_data) > 1 else []
-    return render_template('root_dashboard.html', users=user_list)
+    return render_template('root_dashboard.html', users=user_list, app_version=app_version)
 
 @app.route('/delete_list', methods=['POST'])
 @login_required
@@ -480,7 +481,8 @@ def user_dashboard():
         username=username,
         role=role,
         user_lists=user_lists,
-        user_data=user_data
+        user_data=user_data,
+        app_version=app_version
     )
 
 @app.route('/list/<list_id>')
@@ -515,7 +517,7 @@ def view_list_shopping(list_id):
 
     print(f"✅ FINAL GROUPED CATEGORIES: {list(grouped_items.keys())}")
 
-    return render_template("view_list.html", list_data=selected, grouped_items=grouped_items)
+    return render_template("view_list.html", list_data=selected, grouped_items=grouped_items, app_version=app_version)
 
 @app.route('/logout')
 @login_required
@@ -529,7 +531,7 @@ def show_lists():
     user = session.get('user_id')
     lists = load_lists()
     user_lists = [lst for lst in lists if lst['created_by'] == user]
-    return render_template('user_dashboard.html', lists=user_lists, user=user)
+    return render_template('user_dashboard.html', lists=user_lists, user=user, app_version=app_version)
 
 @app.route('/list/new', methods=['GET', 'POST'])
 @login_required

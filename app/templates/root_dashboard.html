@@ -1,38 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Root Dashboard</title>
+{% extends "base.html" %}
 
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f0f4f8;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-    }
+{% block title %}Root Dashboard{% endblock %}
 
-    .container {
-      background-color: white;
-      padding: 30px 50px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-      text-align: center;
-      max-width: 800px;
-      width: 100%;
-    }
-
-    h2 {
-      font-size: 1.8rem;
-      color: #333;
-      margin-bottom: 20px;
-    }
-
+{% block extra_styles %}
     table {
       width: 100%;
       border-collapse: collapse;
@@ -53,33 +23,6 @@
       color: white;
     }
 
-    .button {
-      padding: 12px 25px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 30px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      width: 100%;
-      margin-top: 10px;
-      display: block;
-      text-decoration: none;
-      text-align: center;
-    }
-
-    .button:hover {
-      background-color: #45a049;
-      transform: translateY(-2px);
-    }
-
-    .button:active {
-      background-color: #3e8e41;
-      transform: translateY(0);
-    }
-
     .delete-button {
       background-color: #f44336;
       color: white;
@@ -93,118 +36,47 @@
       background-color: #d32f2f;
     }
 
-    .popup {
-      position: fixed;
-      bottom: -100px;
-      right: 20px;
-      background-color: #4CAF50;
-      color: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      opacity: 0;
-      transition: all 0.5s ease-in-out;
-      z-index: 1000;
-    }
-
-    .popup.show {
-      bottom: 20px;
-      opacity: 1;
-    }
-
-    .popup.error {
-      background-color: #f44336;
-    }
-
-    .close-btn {
-      background-color: transparent;
-      color: white;
-      border: none;
-      font-size: 16px;
-      margin-left: 15px;
-      cursor: pointer;
-    }
-
     form {
       margin: 0;
     }
-  </style>
+{% endblock %}
 
-  <script>
-    function showPopup(message, isError = false) {
-      const popup = document.getElementById('notificationPopup');
-      const popupMessage = document.getElementById('popupMessage');
-      popupMessage.innerText = message;
+{% block content %}
+<div class="container">
+  <h2>Welcome to the Root Dashboard</h2>
 
-      if (isError) {
-        popup.classList.add('error');
-      } else {
-        popup.classList.remove('error');
-      }
+  <a href="{{ url_for('register_user') }}" class="button">Add User</a>
 
-      popup.classList.add('show');
-      setTimeout(() => popup.classList.remove('show'), 3000);
-    }
-
-    function closePopup() {
-      document.getElementById('notificationPopup').classList.remove('show');
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          {% for category, message in messages %}
-            showPopup("{{ message }}", "{{ category }}" === "danger");
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
-    });
-  </script>
-</head>
-<body>
-  <div class="container">
-    <h2>Welcome to the Root Dashboard</h2>
-
-    <a href="{{ url_for('register_user') }}" class="button">Add User</a>
-
-    <table>
-      <thead>
+  <table>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Action</th>
+        <th>Edit Item List</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
         <tr>
-          <th>Username</th>
-          <th>Action</th>
-          <th>Edit Item List</th>
-
+          <td>{{ user.username }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('remove_user_route') }}">
+              <input type="hidden" name="username" value="{{ user.username }}">
+              <button type="submit" class="delete-button">Delete</button>
+            </form>
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('toggle_edit_permission') }}">
+              <input type="hidden" name="username" value="{{ user.username }}">
+              <input type="checkbox" name="edit_item_list" onchange="this.form.submit()" {% if user.edit_item_list %}checked{% endif %}>
+            </form>
+          </td>
         </tr>
-      </thead>
-      <tbody>
-        {% for user in users %}
-          <tr>
-            <td>{{ user.username }}</td>
-            <td>
-              <form method="POST" action="{{ url_for('remove_user_route') }}">
-                <input type="hidden" name="username" value="{{ user.username }}">
-                <button type="submit" class="delete-button">Delete</button>
-              </form>
-            </td>
-            <td>
-              <form method="POST" action="{{ url_for('toggle_edit_permission') }}">
-                <input type="hidden" name="username" value="{{ user.username }}">
-                <input type="checkbox" name="edit_item_list" onchange="this.form.submit()" {% if user.edit_item_list %}checked{% endif %}>
-              </form>
-            </td>
-          </tr>
-
-        {% endfor %}
-      </tbody>
-    </table>
-    <a href="{{ url_for('view_all_items') }}" class="button">View Item List</a>
-
-    <a href="{{ url_for('logout') }}" class="button">Logout</a>
-  </div>
-
-  <div id="notificationPopup" class="popup">
-    <span id="popupMessage"></span>
-    <button class="close-btn" onclick="closePopup()">✖</button>
-  </div>
-</body>
-</html>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+  <a href="{{ url_for('view_all_items') }}" class="button">View Item List</a>
+  <a href="{{ url_for('logout') }}" class="button">Logout</a>
+</div>
+{% endblock %}

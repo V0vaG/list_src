@@ -4,16 +4,23 @@
 
 {% block content %}
 <div class="container">
-    <h2>Login</h2>
+    <h2>Welcome Back</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Sign in to your account</p>
 
     <form method="POST">
-        <label for="username">Username:</label>
-        <input type="text" name="username" required>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required placeholder="Enter your username">
+        </div>
         
-        <label for="password">Password:</label>
-        <input type="password" name="password" required>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required placeholder="Enter your password">
+        </div>
 
-        <button type="submit" class="button">Login</button>
+        <button type="submit" class="button">
+            <span>Sign In</span>
+        </button>
     </form>
 </div>
 {% endblock %}

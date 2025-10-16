@@ -4,51 +4,64 @@
 
 {% block content %}
 <div class="container">
-  <h2>Welcome to the User Dashboard</h2>
-  <p><strong>User:</strong> {{ username }}</p>
-  <p><strong>Role:</strong> {{ role }}</p>
+  <h2>Dashboard</h2>
+  <div class="card" style="margin-bottom: 2rem; text-align: left;">
+    <p style="margin: 0;"><strong>Welcome back,</strong> {{ username }}!</p>
+    <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary);">
+      {% if role == "root" %}
+        <span style="background: var(--primary-light); color: var(--primary-color); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.875rem;">Administrator</span>
+      {% else %}
+        <span style="color: var(--text-secondary);">User Account</span>
+      {% endif %}
+    </p>
+  </div>
   
   <!-- Shopping Lists Section -->
-  <div style="margin-top: 20px;">
-    <h3>Your Shopping Lists</h3>
+  <div class="card">
+    <h3 style="text-align: left; margin-top: 0;">Your Shopping Lists</h3>
     {% if user_lists %}
-      <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
+      <table>
         <thead>
-          <tr style="background-color: #f0f0f0;">
-            <th style="padding: 10px; border: 1px solid #ccc;">Name</th>
-            <th style="padding: 10px; border: 1px solid #ccc;">Created</th>
-            <th style="padding: 10px; border: 1px solid #ccc;">Action</th>
+          <tr>
+            <th>Name</th>
+            <th>Created</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for list in user_lists %}
             <tr>
-              <td style="padding: 10px; border: 1px solid #ccc;">{{ list.name or "Unnamed" }}</td>
-              <td style="padding: 10px; border: 1px solid #ccc;">{{ list.created_at[:10] }}</td>
-              <td style="padding: 10px; border: 1px solid #ccc; display: flex; gap: 5px;">
-                <a href="{{ url_for('view_list_shopping', list_id=list.id) }}" class="button" style="padding: 6px 12px; font-size: 0.9rem;">View</a>
-                <form action="{{ url_for('delete_list') }}" method="POST" style="display: inline;">
-                  <input type="hidden" name="list_id" value="{{ list.id }}">
-                  <button type="submit" class="button" style="background-color: #e53935; font-size: 0.9rem; padding: 6px 12px;">Delete</button>
-                </form>
+              <td><strong>{{ list.name or "Unnamed" }}</strong></td>
+              <td>{{ list.created_at[:10] }}</td>
+              <td>
+                <div class="flex gap-2">
+                  <a href="{{ url_for('view_list_shopping', list_id=list.id) }}" class="button button-small">View</a>
+                  <form action="{{ url_for('delete_list') }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="list_id" value="{{ list.id }}">
+                    <button type="submit" class="button button-danger button-small" onclick="return confirm('Are you sure you want to delete this list?')">Delete</button>
+                  </form>
+                </div>
               </td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     {% else %}
-      <p style="margin-top: 10px;">No lists found.</p>
+      <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No lists found. Create your first list to get started!</p>
     {% endif %}
   </div>
 
-  {% if role == "root" %}
-    <a href="{{ url_for('root_dashboard') }}" class="button">Go to Root Dashboard</a>
-  {% endif %}
-  {% if role == "root" or user_data.edit_item_list %}
-    <a href="{{ url_for('view_all_items') }}" class="button">View Item List</a>
-  {% endif %}
-
-  <a href="{{ url_for('new_list') }}" class="button">Create List</a>
-  <a href="{{ url_for('logout') }}" class="button">Logout</a>
+  <!-- Action Buttons -->
+  <div class="flex flex-col gap-2" style="margin-top: 2rem;">
+    {% if role == "root" %}
+      <a href="{{ url_for('root_dashboard') }}" class="button button-secondary">Administration Panel</a>
+    {% endif %}
+    {% if role == "root" or user_data.edit_item_list %}
+      <a href="{{ url_for('view_all_items') }}" class="button button-secondary">Manage Items</a>
+    {% endif %}
+    <a href="{{ url_for('new_list') }}" class="button button-success">Create New List</a>
+    <a href="{{ url_for('logout') }}" class="button button-secondary">Sign Out</a>
+  </div>
 </div>
 {% endblock %}
+

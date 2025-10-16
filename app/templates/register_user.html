@@ -4,19 +4,28 @@
 
 {% block content %}
 <div class="container">
-    <h2>Register User</h2>
+    <h2>Create New Account</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Join the team and start managing your lists</p>
 
     <form method="POST">
-        <label for="username">Username:</label>
-        <input type="text" name="username" required>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required placeholder="Choose a username">
+        </div>
         
-        <label for="password">Password:</label>
-        <input type="password" name="password" required>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required placeholder="Create a password">
+        </div>
 
-        <label for="confirm_password">Confirm Password:</label>
-        <input type="password" name="confirm_password" required>
+        <div class="form-group">
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" required placeholder="Confirm your password">
+        </div>
 
-        <button type="submit" class="button">Register</button>
+        <button type="submit" class="button">
+            <span>Create Account</span>
+        </button>
     </form>
 </div>
 {% endblock %}

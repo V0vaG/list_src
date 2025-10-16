@@ -43,40 +43,57 @@
 
 {% block content %}
 <div class="container">
-  <h2>Welcome to the Root Dashboard</h2>
+  <h2>Administration Panel</h2>
+  <p style="color: var(--text-secondary); margin-bottom: 2rem;">Manage users and system settings</p>
 
-  <a href="{{ url_for('register_user') }}" class="button">Add User</a>
+  <div class="card">
+    <div class="flex justify-between items-center" style="margin-bottom: 1.5rem;">
+      <h3 style="margin: 0;">User Management</h3>
+      <a href="{{ url_for('register_user') }}" class="button button-success button-small">Add New User</a>
+    </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Username</th>
-        <th>Action</th>
-        <th>Edit Item List</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for user in users %}
-        <tr>
-          <td>{{ user.username }}</td>
-          <td>
-            <form method="POST" action="{{ url_for('remove_user_route') }}">
-              <input type="hidden" name="username" value="{{ user.username }}">
-              <button type="submit" class="delete-button">Delete</button>
-            </form>
-          </td>
-          <td>
-            <form method="POST" action="{{ url_for('toggle_edit_permission') }}">
-              <input type="hidden" name="username" value="{{ user.username }}">
-              <input type="checkbox" name="edit_item_list" onchange="this.form.submit()" {% if user.edit_item_list %}checked{% endif %}>
-            </form>
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+    {% if users %}
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Edit Permissions</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            <tr>
+              <td><strong>{{ user.username }}</strong></td>
+              <td>
+                <form method="POST" action="{{ url_for('toggle_edit_permission') }}" style="display: inline;">
+                  <input type="hidden" name="username" value="{{ user.username }}">
+                  <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                    <input type="checkbox" name="edit_item_list" onchange="this.form.submit()" {% if user.edit_item_list %}checked{% endif %} style="margin: 0;">
+                    <span style="font-size: 0.875rem;">Can edit items</span>
+                  </label>
+                </form>
+              </td>
+              <td>
+                <form method="POST" action="{{ url_for('remove_user_route') }}" style="display: inline;">
+                  <input type="hidden" name="username" value="{{ user.username }}">
+                  <button type="submit" class="button button-danger button-small" onclick="return confirm('Are you sure you want to delete user {{ user.username }}?')">Remove</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No users found. Add your first user to get started!</p>
+    {% endif %}
+  </div>
   
-  <a href="{{ url_for('view_all_items') }}" class="button">View Item List</a>
-  <a href="{{ url_for('logout') }}" class="button">Logout</a>
+  <!-- Action Buttons -->
+  <div class="flex flex-col gap-2" style="margin-top: 2rem;">
+    <a href="{{ url_for('view_all_items') }}" class="button button-secondary">Manage Items</a>
+    <a href="{{ url_for('user_dashboard') }}" class="button button-secondary">Back to Dashboard</a>
+    <a href="{{ url_for('logout') }}" class="button button-secondary">Sign Out</a>
+  </div>
 </div>
 {% endblock %}

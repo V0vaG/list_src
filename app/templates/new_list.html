@@ -26,54 +26,73 @@
 
 {% block content %}
 <div class="container">
-  <h2>Create New List</h2>
-
   {% if list_data %}
-    <p><strong>List Name:</strong> {{ list_data.name or 'Unnamed' }}</p>
-    <p><strong>List ID:</strong> {{ list_data.id }}</p>
-    <p><strong>Created:</strong> {{ list_data.created_at }}</p>
-    <p><strong>Total:</strong> ${{ "%.2f"|format(list_data.total_price) }}</p>
-
-    <a href="{{ url_for('choose_item', list_id=list_data.id) }}" class="button">Add Item</a>
+    <h2>{{ list_data.name or 'Shopping List' }}</h2>
+    
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="flex justify-between items-center">
+        <div>
+          <p style="margin: 0;"><strong>Created:</strong> {{ list_data.created_at[:16] }}</p>
+          <p style="margin: 0.5rem 0 0 0;"><strong>Total:</strong> <span style="color: var(--success-color); font-size: 1.25rem;">${{ "%.2f"|format(list_data.total_price or 0) }}</span></p>
+        </div>
+        <a href="{{ url_for('choose_item', list_id=list_data.id) }}" class="button button-success button-small">Add Item</a>
+      </div>
+    </div>
 
     {% if list_data.items %}
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Amount</th>
-            <th>Price</th>
-            <th>Total</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in list_data['items'] %}
+      <div class="card">
+        <h3 style="margin-top: 0;">Items ({{ list_data.items|length }})</h3>
+        <table>
+          <thead>
             <tr>
-              <td>{{ item.name }}</td>
-              <td>{{ item.amount }}</td>
-              <td>${{ "%.2f"|format(item.price) }}</td>
-              <td>${{ "%.2f"|format(item.total_price) }}</td>
-              <td>
-                <form method="POST" action="{{ url_for('delete_item', list_id=list_data.id, item_id=item.id) }}">
-                  <button type="submit" class="button button-red">Delete</button>
-                </form>
-              </td>
+              <th>Item</th>
+              <th>Amount</th>
+              <th>Price</th>
+              <th>Total</th>
+              <th>Actions</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for item in list_data['items'] %}
+              <tr>
+                <td><strong>{{ item.name }}</strong></td>
+                <td>{{ item.amount }}</td>
+                <td>${{ "%.2f"|format(item.price) }}</td>
+                <td><strong>${{ "%.2f"|format(item.total_price) }}</strong></td>
+                <td>
+                  <form method="POST" action="{{ url_for('delete_item', list_id=list_data.id, item_id=item.id) }}" style="display: inline;">
+                    <button type="submit" class="button button-danger button-small" onclick="return confirm('Remove this item?')">Remove</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     {% else %}
-      <p>No items added yet.</p>
+      <div class="card">
+        <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No items added yet. Add your first item to get started!</p>
+      </div>
     {% endif %}
 
-    <form method="POST" action="{{ url_for('finish_list', list_id=list_data.id) }}">
-      <button type="submit" class="button">Finish List</button>
-    </form>
+    <div class="flex gap-2" style="margin-top: 2rem;">
+      <form method="POST" action="{{ url_for('finish_list', list_id=list_data.id) }}" style="flex: 1;">
+        <button type="submit" class="button button-success">Complete List</button>
+      </form>
+      <a href="{{ url_for('user_dashboard') }}" class="button button-secondary">Back to Dashboard</a>
+    </div>
   {% else %}
+    <h2>Create New List</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Start organizing your shopping with a new list</p>
+
     <form method="POST">
-      <input type="text" name="list_name" class="input-field" placeholder="Enter list name" required>
-      <button type="submit" class="button">Create New List</button>
+      <div class="form-group">
+        <label for="list_name">List Name</label>
+        <input type="text" id="list_name" name="list_name" placeholder="Enter list name (e.g., Weekly Groceries)" required>
+      </div>
+      <button type="submit" class="button button-success">
+        <span>Create List</span>
+      </button>
     </form>
   {% endif %}
 </div>

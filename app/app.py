@@ -18,11 +18,46 @@ import unicodedata
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app_version = os.getenv('VERSION', '0.0.0')
-app_branch = os.getenv('BRANCH', '')
+app_branch = os.getenv('BRANCH', 'N/A')
+
+print(f"Version: {app_version} | Branch: {app_branch}")
 
 @app.context_processor
 def inject_version():
-    return dict(app_version=app_version, app_branch=app_branch)
+    user_data = {}
+    role = None
+    has_manage_items_permission = False
+    
+    if 'user_id' in session:
+        role = "root" if session.get('is_root') else "user"
+        username = session.get('user_id', 'Unknown')
+        
+        try:
+            users_data = load_users()
+            
+            if not session.get('is_root'):
+                if len(users_data) > 1 and "users" in users_data[1]:
+                    for u in users_data[1]["users"]:
+                        if u.get("username") == username:
+                            user_data = u
+                            break
+            else:
+                user_data = {"edit_item_list": True}
+            
+            has_manage_items_permission = session.get('is_root') or user_data.get("edit_item_list", False)
+        except (IndexError, KeyError, TypeError):
+            # Handle cases where users_data structure is unexpected
+            if session.get('is_root'):
+                user_data = {"edit_item_list": True}
+                has_manage_items_permission = True
+    
+    return dict(
+        app_version=app_version, 
+        app_branch=app_branch,
+        user_data=user_data,
+        role=role,
+        has_manage_items_permission=has_manage_items_permission
+    )
 
 # Set up paths
 alias = "list"
@@ -234,7 +269,12 @@ def rename_list(list_id):
 def choose_item(list_id):
     if request.method == 'POST':
         item_id = request.form.get('item_id')
-        amount = int(request.form.get('amount', 1))
+        amount_str = request.form.get('amount', '1')
+        # Keep * as *, otherwise parse as int
+        if amount_str == '*':
+            amount = '*'
+        else:
+            amount = int(amount_str)
         unit = request.form.get('unit', 'amount')  # <-- get unit from form, default to 'amount'
 
         items = load_items()

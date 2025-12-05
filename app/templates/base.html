@@ -345,24 +345,180 @@
 
         /* Responsive design */
         @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+
             .main-content {
-                padding: 1rem;
+                padding: 0.5rem;
             }
             
             .container {
-                padding: 1.5rem 2rem;
+                padding: 1.25rem 1.5rem;
                 max-width: 100%;
+                margin: 0.5rem;
             }
             
             h2 {
-                font-size: 1.75rem;
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.25rem;
             }
             
             .popup {
-                right: 1rem;
-                left: 1rem;
+                right: 0.5rem;
+                left: 0.5rem;
                 max-width: none;
+                top: 1rem;
+                padding: 0.875rem 1rem;
             }
+
+            .nav-tabs {
+                padding: 0 0.5rem;
+                flex-wrap: wrap;
+            }
+
+            .nav-tabs-left {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .nav-tabs-right {
+                flex-shrink: 0;
+            }
+
+            .nav-tab {
+                padding: 0.75rem 0.875rem;
+                font-size: 0.875rem;
+                white-space: nowrap;
+            }
+
+            .logout-btn {
+                padding: 0.5rem 0.875rem;
+                font-size: 0.875rem;
+            }
+
+            .button {
+                padding: 0.75rem 1.5rem;
+                font-size: 0.9375rem;
+            }
+
+            .button-small {
+                padding: 0.5rem 1rem;
+                font-size: 0.8125rem;
+            }
+
+            table {
+                font-size: 0.875rem;
+            }
+
+            th, td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .card {
+                padding: 1rem;
+            }
+
+            .version-footer {
+                padding: 0.75rem 1rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-tabs {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .nav-tabs-left {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .nav-tabs-right {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .logout-btn {
+                width: 100%;
+            }
+        }
+
+        /* Navigation tabs */
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .nav-tabs-left {
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-tabs-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logout-btn {
+            padding: 0.5rem 1rem;
+            background: var(--error-color);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-tab {
+            padding: 1rem 2rem;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .nav-tab:hover {
+            color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .nav-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
         }
 
         /* Utility classes */
@@ -391,13 +547,30 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+    {% if session.get('user_id') %}
+    <!-- Navigation Bar -->
+    <nav class="nav-bar">
+        <div class="nav-tabs">
+            <div class="nav-tabs-left">
+                <a href="{{ url_for('user_dashboard') }}" class="nav-tab {% if request.endpoint in ['user_dashboard', 'view_list_shopping', 'new_list', 'choose_item', 'add_item_to_list', 'finish_list', 'delete_list', 'rename_list'] %}active{% endif %}">Lists</a>
+                {% if has_manage_items_permission %}
+                <a href="{{ url_for('view_all_items') }}" class="nav-tab {% if request.endpoint in ['view_all_items', 'add_item_page', 'edit_item', 'delete_independent_item', 'export_items', 'import_items'] %}active{% endif %}">Manage Items</a>
+                {% endif %}
+            </div>
+            <div class="nav-tabs-right">
+                <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+    
     <div class="main-content">
         {% block content %}{% endblock %}
     </div>
 
     <!-- Version Footer -->
     <div class="version-footer">
-        <span>Version {{ app_version or '1.0.0' }}{% if app_branch %} ({{ app_branch }}){% endif %}</span>
+        <span>Version {{ app_version or '1.0.0' }} | Branch: {{ app_branch }}</span>
         <span style="margin: 0 10px;">|</span>
         <span>List Management System</span>
     </div>

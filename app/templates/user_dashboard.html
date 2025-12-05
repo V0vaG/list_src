@@ -2,6 +2,17 @@
 
 {% block title %}User Dashboard{% endblock %}
 
+{% block extra_styles %}
+        table tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        table tbody tr:hover {
+            background-color: var(--primary-light) !important;
+            transform: translateX(4px);
+        }
+    {% endblock %}
+
 {% block content %}
 <div class="container">
   <h2>Dashboard</h2>
@@ -24,24 +35,12 @@
         <thead>
           <tr>
             <th>Name</th>
-            <th>Created</th>
-            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for list in user_lists %}
-            <tr>
+            <tr onclick="window.location.href='{{ url_for('view_list_shopping', list_id=list.id) }}'" style="cursor: pointer;">
               <td><strong>{{ list.name or "Unnamed" }}</strong></td>
-              <td>{{ list.created_at[:10] }}</td>
-              <td>
-                <div class="flex gap-2">
-                  <a href="{{ url_for('view_list_shopping', list_id=list.id) }}" class="button button-small">View</a>
-                  <form action="{{ url_for('delete_list') }}" method="POST" style="display: inline;">
-                    <input type="hidden" name="list_id" value="{{ list.id }}">
-                    <button type="submit" class="button button-danger button-small" onclick="return confirm('Are you sure you want to delete this list?')">Delete</button>
-                  </form>
-                </div>
-              </td>
             </tr>
           {% endfor %}
         </tbody>
@@ -56,11 +55,7 @@
     {% if role == "root" %}
       <a href="{{ url_for('root_dashboard') }}" class="button button-secondary">Administration Panel</a>
     {% endif %}
-    {% if role == "root" or user_data.edit_item_list %}
-      <a href="{{ url_for('view_all_items') }}" class="button button-secondary">Manage Items</a>
-    {% endif %}
     <a href="{{ url_for('new_list') }}" class="button button-success">Create New List</a>
-    <a href="{{ url_for('logout') }}" class="button button-secondary">Sign Out</a>
   </div>
 </div>
 {% endblock %}

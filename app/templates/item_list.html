@@ -1,49 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>All Items</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7f9;
-            margin: 0;
-            padding: 20px;
-        }
+{% extends "base.html" %}
 
+{% block title %}All Items{% endblock %}
+
+{% block extra_styles %}
         .container {
             max-width: 1000px;
             margin: auto;
-            background-color: white;
+            background-color: var(--surface-color);
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
         }
 
         h2 {
             text-align: center;
-            color: #333;
+            color: var(--text-primary);
         }
 
         .top-buttons {
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
+            gap: 1rem;
         }
 
         .button {
-            background-color: #4CAF50;
+            background-color: var(--success-color);
             color: white;
             padding: 10px 18px;
             text-decoration: none;
             border: none;
-            border-radius: 5px;
+            border-radius: var(--radius-md);
             cursor: pointer;
             font-size: 14px;
+            transition: all 0.2s ease;
         }
 
         .button:hover {
-            background-color: #45a049;
+            background-color: #059669;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
         }
 
         table {
@@ -54,24 +50,28 @@
 
         th, td {
             padding: 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             text-align: center;
         }
 
         th {
-            background-color: #4CAF50;
+            background: linear-gradient(135deg, var(--success-color), #059669);
             color: white;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
         }
 
         img {
             height: 50px;
-            border-radius: 4px;
+            border-radius: var(--radius-sm);
         }
 
         .no-items {
             text-align: center;
             margin-top: 20px;
-            color: #777;
+            color: var(--text-secondary);
         }
 
         #editModal {
@@ -80,12 +80,12 @@
             top: 10%;
             left: 50%;
             transform: translateX(-50%);
-            background: white;
+            background: var(--surface-color);
             padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
             z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow-xl);
             max-width: 400px;
             width: 90%;
         }
@@ -95,6 +95,15 @@
             width: 100%;
             padding: 8px;
             margin-bottom: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+        }
+
+        #editModal input[type="text"]:focus,
+        #editModal select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-light);
         }
 
         #photo-preview {
@@ -109,11 +118,15 @@
         }
 
         #delete-button-container .button {
-            background-color: #e53935;
+            background-color: var(--error-color);
         }
-    </style>
-</head>
-<body>
+
+        #delete-button-container .button:hover {
+            background-color: #dc2626;
+        }
+    {% endblock %}
+
+{% block content %}
 <div class="container">
     <h2>{{ title or "All Items" }}</h2>
 
@@ -125,7 +138,6 @@
 
     <div class="top-buttons">
         <button class="button" onclick="openEditModal(null)">➕ Add Item</button>
-        <a href="{{ url_for('root_dashboard') }}" class="button">⬅ Back to Dashboard</a>
     </div>
 
     {% if items|length == 0 %}
@@ -192,7 +204,9 @@
         </form>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_scripts %}
 <script>
     const itemsData = {{ items|tojson }};
     const categoryMap = {{ category_map|tojson }};
@@ -270,5 +284,4 @@
         }
     }
 </script>
-</body>
-</html>
+{% endblock %}

@@ -226,6 +226,16 @@
       }
     }
 
+    function appendNumpadStar() {
+      const display = document.getElementById('numpadDisplay');
+      if (display.innerText === '*' || display.innerText === '0') {
+        display.innerText = '*';
+      } else {
+        // If there's already a number, replace with *
+        display.innerText = '*';
+      }
+    }
+
     function deleteNumpad() {
       const display = document.getElementById('numpadDisplay');
       const newText = display.innerText.slice(0, -1);
@@ -244,6 +254,19 @@
 
     function submitNumpad() {
       const text = document.getElementById('numpadDisplay').innerText;
+      
+      // If * is entered, keep it as *
+      if (text === '*') {
+        if (selectedItemId) {
+          document.getElementById('selectedItem').value = selectedItemId;
+          document.getElementById('selectedAmount').value = '*';
+          document.getElementById('selectedUnit').value = selectedUnit;
+          document.getElementById('itemForm').submit();
+        }
+        return;
+      }
+      
+      // Otherwise, parse as integer
       const amount = parseInt(text);
       if (!isNaN(amount) && amount > 0 && selectedItemId) {
         document.getElementById('selectedItem').value = selectedItemId;
@@ -252,6 +275,30 @@
         document.getElementById('itemForm').submit();
       }
     }
+
+    // Handle keyboard input for number pad
+    document.addEventListener('keydown', function(e) {
+      const modal = document.getElementById('numpadModal');
+      if (modal.style.display === 'block') {
+        // Handle number pad keys
+        if (e.key >= '0' && e.key <= '9') {
+          e.preventDefault();
+          appendNumpad(e.key);
+        } else if (e.key === '*') {
+          e.preventDefault();
+          appendNumpadStar();
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          submitNumpad();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          cancelNumpad();
+        } else if (e.key === 'Backspace') {
+          e.preventDefault();
+          deleteNumpad();
+        }
+      }
+    });
   </script>
 </body>
 </html>

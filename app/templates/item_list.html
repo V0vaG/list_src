@@ -234,7 +234,7 @@
             </thead>
             <tbody>
                 {% for item in items %}
-                    <tr onclick="openEditModal('{{ item.id }}')">
+                    <tr onclick="event.stopPropagation(); openEditModal('{{ item.id }}')" style="cursor: pointer;">
                         <td><img src="{{ item.photo }}" alt="Item Image"></td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.category.type }}</td>

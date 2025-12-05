@@ -468,7 +468,7 @@
             box-shadow: var(--shadow-md);
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
         }
 
         .nav-tabs {
@@ -519,6 +519,10 @@
             border-bottom: 3px solid transparent;
             transition: all 0.2s ease;
             position: relative;
+            display: block;
+            -webkit-tap-highlight-color: transparent;
+            pointer-events: auto;
+            z-index: 1001;
         }
 
         .nav-tab:hover {

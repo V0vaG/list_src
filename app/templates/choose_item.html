@@ -77,6 +77,50 @@
       padding: 20px;
       text-align: center;
       display: none;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 768px) {
+      .numpad-modal {
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        transform: none;
+        width: 100%;
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        border: none;
+        padding: 2rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .numpad-display {
+        font-size: 36px;
+        margin-bottom: 2rem;
+      }
+
+      .numpad-buttons {
+        gap: 15px;
+      }
+
+      .numpad-buttons button {
+        font-size: 24px;
+        padding: 20px;
+      }
+
+      .numpad-actions {
+        margin-top: 2rem;
+      }
+
+      .numpad-actions button {
+        padding: 15px 25px;
+        font-size: 18px;
+      }
     }
 
     .numpad-display {
@@ -123,6 +167,8 @@
       width: 100vw;
       height: 100vh;
       background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
       z-index: 999;
       display: none;
     }
@@ -251,6 +297,18 @@
       document.getElementById('overlay').style.display = 'none';
       selectedItemId = null;
     }
+
+    // Close numpad when clicking overlay
+    document.addEventListener('DOMContentLoaded', function() {
+      const overlay = document.getElementById('overlay');
+      if (overlay) {
+        overlay.addEventListener('click', function(e) {
+          if (e.target === overlay) {
+            cancelNumpad();
+          }
+        });
+      }
+    });
 
     function submitNumpad() {
       const text = document.getElementById('numpadDisplay').innerText;

@@ -234,7 +234,7 @@
             </thead>
             <tbody>
                 {% for item in items %}
-                    <tr onclick="event.stopPropagation(); openEditModal('{{ item.id }}')" style="cursor: pointer;">
+                    <tr onclick="if(event.target.tagName !== 'A' && !event.target.closest('a')) { openEditModal('{{ item.id }}'); }" style="cursor: pointer;">
                         <td><img src="{{ item.photo }}" alt="Item Image"></td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.category.type }}</td>
@@ -292,6 +292,42 @@
 <script>
     const itemsData = {{ items|tojson }};
     const categoryMap = {{ category_map|tojson }};
+
+    // Prevent table row clicks when clicking navigation
+    document.addEventListener('DOMContentLoaded', function() {
+        const navBar = document.querySelector('.nav-bar');
+        const tableRows = document.querySelectorAll('table tbody tr');
+        
+        if (navBar && tableRows.length > 0) {
+            // Add a flag to track if navigation was clicked
+            let navClicked = false;
+            
+            navBar.addEventListener('click', function(e) {
+                navClicked = true;
+                setTimeout(() => { navClicked = false; }, 100);
+            }, true);
+            
+            navBar.addEventListener('touchend', function(e) {
+                navClicked = true;
+                setTimeout(() => { navClicked = false; }, 100);
+            }, true);
+            
+            // Prevent table row clicks if navigation was just clicked
+            tableRows.forEach(row => {
+                const originalOnclick = row.onclick;
+                row.onclick = function(e) {
+                    if (navClicked || e.target.closest('.nav-bar')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                    if (originalOnclick) {
+                        return originalOnclick.call(this, e);
+                    }
+                };
+            });
+        }
+    });
 
     function updateSubtypes(selectedSubtype = "") {
         const catSelect = document.getElementById("edit-category");

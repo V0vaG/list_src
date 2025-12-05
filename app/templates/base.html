@@ -469,6 +469,11 @@
             position: sticky;
             top: 0;
             z-index: 1000;
+            pointer-events: auto;
+        }
+
+        .nav-bar * {
+            pointer-events: auto;
         }
 
         .nav-tabs {
@@ -566,13 +571,13 @@
     <nav class="nav-bar">
         <div class="nav-tabs">
             <div class="nav-tabs-left">
-                <a href="{{ url_for('user_dashboard') }}" class="nav-tab {% if request.endpoint in ['user_dashboard', 'view_list_shopping', 'new_list', 'choose_item', 'add_item_to_list', 'finish_list', 'delete_list', 'rename_list'] %}active{% endif %}">Lists</a>
+                <a href="{{ url_for('user_dashboard') }}" class="nav-tab {% if request.endpoint in ['user_dashboard', 'view_list_shopping', 'new_list', 'choose_item', 'add_item_to_list', 'finish_list', 'delete_list', 'rename_list'] %}active{% endif %}" onclick="event.stopPropagation(); return true;">Lists</a>
                 {% if has_manage_items_permission %}
-                <a href="{{ url_for('view_all_items') }}" class="nav-tab {% if request.endpoint in ['view_all_items', 'add_item_page', 'edit_item', 'delete_independent_item', 'export_items', 'import_items'] %}active{% endif %}">Manage Items</a>
+                <a href="{{ url_for('view_all_items') }}" class="nav-tab {% if request.endpoint in ['view_all_items', 'add_item_page', 'edit_item', 'delete_independent_item', 'export_items', 'import_items'] %}active{% endif %}" onclick="event.stopPropagation(); return true;">Manage Items</a>
                 {% endif %}
             </div>
             <div class="nav-tabs-right">
-                <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+                <a href="{{ url_for('logout') }}" class="logout-btn" onclick="event.stopPropagation(); return true;">Logout</a>
             </div>
         </div>
     </nav>
@@ -626,6 +631,17 @@
                 {% endfor %}
               {% endif %}
             {% endwith %}
+
+            // Prevent table clicks when clicking navigation on mobile
+            const navBar = document.querySelector('.nav-bar');
+            if (navBar) {
+                navBar.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                }, true);
+                navBar.addEventListener('touchend', function(e) {
+                    e.stopPropagation();
+                }, true);
+            }
         });
     </script>
 

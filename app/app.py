@@ -18,6 +18,11 @@ import unicodedata
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app_version = os.getenv('VERSION', '0.0.0')
+app_branch = os.getenv('BRANCH', '')
+
+@app.context_processor
+def inject_version():
+    return dict(app_version=app_version, app_branch=app_branch)
 
 # Set up paths
 alias = "list"

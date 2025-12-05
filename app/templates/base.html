@@ -397,7 +397,7 @@
 
     <!-- Version Footer -->
     <div class="version-footer">
-        <span>Version {{ app_version or '1.0.0' }}</span>
+        <span>Version {{ app_version or '1.0.0' }}{% if app_branch %} ({{ app_branch }}){% endif %}</span>
         <span style="margin: 0 10px;">|</span>
         <span>List Management System</span>
     </div>

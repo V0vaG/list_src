@@ -377,12 +377,25 @@
 
             .nav-tabs {
                 padding: 0 0.5rem;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .nav-tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .nav-tabs {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
             }
 
             .nav-tabs-left {
                 flex: 1;
                 min-width: 0;
+                display: flex;
+                gap: 0;
             }
 
             .nav-tabs-right {
@@ -390,14 +403,16 @@
             }
 
             .nav-tab {
-                padding: 0.75rem 0.875rem;
-                font-size: 0.875rem;
+                padding: 0.75rem 0.75rem;
+                font-size: 0.8125rem;
                 white-space: nowrap;
+                flex-shrink: 0;
             }
 
             .logout-btn {
-                padding: 0.5rem 0.875rem;
-                font-size: 0.875rem;
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8125rem;
+                white-space: nowrap;
             }
 
             .button {
@@ -430,22 +445,17 @@
 
         @media (max-width: 480px) {
             .nav-tabs {
-                flex-direction: column;
-                gap: 0.5rem;
+                padding: 0 0.25rem;
             }
 
-            .nav-tabs-left {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .nav-tabs-right {
-                width: 100%;
-                justify-content: center;
+            .nav-tab {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.75rem;
             }
 
             .logout-btn {
-                width: 100%;
+                padding: 0.5rem 0.625rem;
+                font-size: 0.75rem;
             }
         }
 

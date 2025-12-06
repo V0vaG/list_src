@@ -224,32 +224,43 @@ def save_items(items):
     with open(ITEMS_FILE, 'w') as f:
         json.dump(items, f, indent=4)
 
-@app.route('/item/edit/<item_id>', methods=['POST'])
+@app.route('/item/edit/<item_id>', methods=['GET', 'POST'])
 @login_required
 def edit_item(item_id):
-    name = request.form.get('name')
-    category = request.form.get('category')
-    subcategory = request.form.get('subcategory')
-    photo_file = request.files.get('photo')
-
     items = load_items()
-    for item in items:
-        if item['id'] == item_id:
-            item['name'] = name
-            item['category']['type'] = category
-            item['category']['subtype'] = subcategory
+    item = next((item for item in items if item['id'] == item_id), None)
+    
+    if not item:
+        flash('Item not found', 'danger')
+        return redirect(url_for('view_all_items'))
+    
+    if request.method == 'POST':
+        name = request.form.get('name')
+        category = request.form.get('category')
+        subcategory = request.form.get('subcategory')
+        photo_file = request.files.get('photo')
 
-            if photo_file and photo_file.filename:
-                ext = os.path.splitext(photo_file.filename)[1]
-                photo_filename = f"{item_id}{ext}"
-                photo_path = os.path.join(app.config['UPLOAD_FOLDER'], photo_filename)
-                photo_file.save(photo_path)
-                item['photo'] = photo_filename
-            break
+        item['name'] = name
+        item['category']['type'] = category
+        item['category']['subtype'] = subcategory
 
-    save_items(items)
-    flash('Item updated!', 'success')
-    return redirect(url_for('view_all_items'))
+        if photo_file and photo_file.filename:
+            ext = os.path.splitext(photo_file.filename)[1]
+            photo_filename = f"{item_id}{ext}"
+            photo_path = os.path.join(app.config['UPLOAD_FOLDER'], photo_filename)
+            photo_file.save(photo_path)
+            item['photo'] = photo_filename
+        
+        save_items(items)
+        flash('Item updated!', 'success')
+        return redirect(url_for('view_all_items'))
+    
+    # GET request - show edit page
+    # Add full image path if photo exists
+    if 'photo' in item and item['photo']:
+        item['photo'] = item['photo']  # Keep filename, template will use url_for
+    
+    return render_template('edit_item.html', item=item, category_map=CATEGORY_MAP, app_version=app_version)
 
 @app.route('/list/<list_id>/rename', methods=['POST'])
 @login_required

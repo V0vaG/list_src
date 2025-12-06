@@ -635,12 +635,27 @@
             // Prevent table clicks when clicking navigation on mobile
             const navBar = document.querySelector('.nav-bar');
             if (navBar) {
-                navBar.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                }, true);
-                navBar.addEventListener('touchend', function(e) {
-                    e.stopPropagation();
-                }, true);
+                // Stop all events from propagating, but allow default link behavior
+                ['click', 'touchend', 'touchstart', 'touchmove'].forEach(eventType => {
+                    navBar.addEventListener(eventType, function(e) {
+                        // Stop propagation to prevent triggering actions on elements below
+                        e.stopPropagation();
+                        // Allow default behavior for links (navigation)
+                    }, true); // Use capture phase to catch early
+                });
+                
+                // Specifically handle navigation links
+                const navLinks = navBar.querySelectorAll('a');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        // Allow default navigation
+                    }, true);
+                    link.addEventListener('touchend', function(e) {
+                        e.stopPropagation();
+                        // Allow default navigation
+                    }, true);
+                });
             }
         });
     </script>

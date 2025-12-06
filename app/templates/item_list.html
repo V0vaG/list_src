@@ -138,99 +138,6 @@
             color: var(--text-secondary);
         }
 
-        #modalOverlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            z-index: 999;
-        }
-
-        #editModal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--surface-color);
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            z-index: 1000;
-            box-shadow: var(--shadow-xl);
-            max-width: 400px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        @media (max-width: 768px) {
-            #editModal {
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                transform: none;
-                width: 100%;
-                max-width: 100%;
-                max-height: 100vh;
-                border-radius: 0;
-                padding: 1.5rem;
-                display: flex;
-                flex-direction: column;
-            }
-
-            #editModal form {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                overflow-y: auto;
-            }
-        }
-
-        #editModal input[type="text"],
-        #editModal select {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-md);
-        }
-
-        #editModal input[type="text"]:focus,
-        #editModal select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px var(--primary-light);
-        }
-
-        #photo-preview {
-            max-height: 80px;
-            display: none;
-            margin-top: 10px;
-        }
-
-        #delete-button-container {
-            margin-top: 10px;
-            display: none;
-        }
-
-        #delete-button-container .button {
-            background: linear-gradient(135deg, var(--error-color), #dc2626);
-            color: white;
-            border: none;
-        }
-
-        #delete-button-container .button:hover {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-        }
     {% endblock %}
 
 {% block content %}
@@ -244,7 +151,7 @@
     </form>
 
     <div class="top-buttons">
-        <button class="button" onclick="openEditModal(null)">➕ Add Item</button>
+        <a href="{{ url_for('add_item_page') }}" class="button" style="text-decoration: none; display: inline-block; text-align: center;">➕ Add Item</a>
     </div>
 
     {% if items|length == 0 %}
@@ -269,7 +176,7 @@
                         <td>{{ item.category.type }}</td>
                         <td>{{ item.category.subtype }}</td>
                         <td>
-                            <button class="edit-button" onclick="openEditModal('{{ item.id }}')">Edit</button>
+                            <button class="edit-button" data-item-id="{{ item.id }}">Edit</button>
                         </td>
                     </tr>
                 {% endfor %}
@@ -279,127 +186,154 @@
     {% endif %}
 </div>
 
-<!-- Modal Overlay -->
-<div id="modalOverlay" onclick="closeModal()"></div>
-
-<!-- Edit/Add Modal -->
-<div id="editModal">
-    <h3 id="modal-title">Edit Item</h3>
-    <form id="editItemForm" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="id" id="edit-id">
-
-        <label>Name:</label>
-        <input type="text" name="name" id="edit-name" required>
-
-        <label>Category:</label>
-        <select name="category" id="edit-category" required onchange="updateSubtypes()">
-            {% for cat in category_map.keys() %}
-                <option value="{{ cat }}">{{ cat }}</option>
-            {% endfor %}
-        </select>
-
-        <label>Subtype:</label>
-        <select name="subcategory" id="edit-subcategory" required>
-            <!-- Options will be filled by JS -->
-        </select>
-
-        <input type="file" name="photo" id="edit-photo" accept="image/*" style="display: none;" onchange="updatePhotoLabel(this)">
-        <button type="button" class="button" onclick="document.getElementById('edit-photo').click();">📷 Upload Image</button>
-        <span id="photo-filename" style="font-size: 12px; margin-left: 10px;"></span>
-        <img id="photo-preview" src="" alt="Preview">
-
-        <button type="submit" class="button">💾 Save</button>
-        <button type="button" class="button" onclick="closeModal()">Cancel</button>
-    </form>
-
-    <div id="delete-button-container">
-        <form id="deleteForm" method="POST">
-            <button type="submit" class="button">🗑 Delete</button>
-        </form>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    const itemsData = {{ items|tojson }};
-    const categoryMap = {{ category_map|tojson }};
+    // Helper function to check if click is on navigation
+    function isNavigationElement(element) {
+        if (!element) return false;
+        return element.closest('.nav-bar') !== null || 
+               element.closest('.nav-tab') !== null || 
+               element.closest('nav') !== null ||
+               element.classList.contains('nav-bar') ||
+               element.classList.contains('nav-tab') ||
+               element.tagName === 'NAV';
+    }
+    
+    // Helper function to check if coordinates are within navigation bar
+    function isClickInNavigationBar(x, y) {
+        const navBar = document.querySelector('.nav-bar');
+        if (!navBar) {
+            // Fallback: if nav bar not found, check if Y is in top 100px (safe zone)
+            return y < 100;
+        }
+        const rect = navBar.getBoundingClientRect();
+        // Add extra padding below nav bar to catch clicks that might be close
+        return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom + 20;
+    }
+    
+    // Track recent navigation clicks
+    let recentNavClick = false;
 
-    // No longer need row click handlers - only Edit buttons trigger the modal
+    // Prevent navigation clicks from triggering any table actions
+    document.addEventListener('DOMContentLoaded', function() {
+        const navBar = document.querySelector('.nav-bar');
+        
+        // Stop all events on navigation at the source
+        if (navBar) {
+            ['click', 'touchend', 'touchstart', 'mousedown'].forEach(eventType => {
+                navBar.addEventListener(eventType, function(e) {
+                    recentNavClick = true;
+                    // Stop propagation to prevent triggering actions below
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    // Reset flag after delay
+                    setTimeout(() => { recentNavClick = false; }, 500);
+                    // But allow default behavior for links (navigation)
+                    // Don't call preventDefault() - let links navigate normally
+                }, true); // Capture phase - catch early
+            });
+            
+            // Specifically handle navigation links to ensure they work
+            const navLinks = navBar.querySelectorAll('a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    recentNavClick = true;
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    setTimeout(() => { recentNavClick = false; }, 500);
+                    // Allow default navigation
+                }, true);
+            });
+        }
+        
+        // Global click handler - check Y coordinate first before anything else
+        document.addEventListener('click', function(e) {
+            const y = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : null);
+            window.lastClickY = y;
+            if (y !== null && isClickInNavigationBar(e.clientX || 0, y)) {
+                recentNavClick = true;
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                setTimeout(() => { recentNavClick = false; }, 500);
+                return false;
+            }
+        }, true); // Capture phase - highest priority
+        
+        // Also track touch events
+        document.addEventListener('touchend', function(e) {
+            const touch = e.changedTouches[0];
+            if (touch) {
+                window.lastClickY = touch.clientY;
+                if (isClickInNavigationBar(touch.clientX, touch.clientY)) {
+                    recentNavClick = true;
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    setTimeout(() => { recentNavClick = false; }, 500);
+                    return false;
+                }
+            }
+        }, true);
 
-    function updateSubtypes(selectedSubtype = "") {
-        const catSelect = document.getElementById("edit-category");
-        const subSelect = document.getElementById("edit-subcategory");
-        const selectedCat = catSelect.value;
-
-        subSelect.innerHTML = "";
-
-        (categoryMap[selectedCat] || []).forEach(sub => {
-            const opt = new Option(sub, sub);
-            subSelect.appendChild(opt);
+        // Ensure Edit buttons navigate to edit page (not modal)
+        const editButtons = document.querySelectorAll('.edit-button');
+        editButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                // Check if click originated from navigation
+                if (recentNavClick || 
+                    isNavigationElement(e.target) || 
+                    isNavigationElement(e.target.parentElement) ||
+                    isClickInNavigationBar(e.clientX, e.clientY)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return;
+                }
+                
+                e.stopPropagation();
+                const itemId = this.dataset.itemId;
+                if (itemId) {
+                    // Navigate to edit page instead of opening modal
+                    window.location.href = `/item/edit/${itemId}`;
+                }
+            }, true); // Use capture phase
+            
+            button.addEventListener('touchend', function(e) {
+                const touch = e.changedTouches[0];
+                // Check if touch originated from navigation
+                if (recentNavClick ||
+                    isNavigationElement(e.target) || 
+                    isNavigationElement(e.target.parentElement) ||
+                    (touch && isClickInNavigationBar(touch.clientX, touch.clientY))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return;
+                }
+                
+                e.stopPropagation();
+                e.preventDefault(); // Prevent double-firing on mobile
+                const itemId = this.dataset.itemId;
+                if (itemId) {
+                    // Navigate to edit page instead of opening modal
+                    window.location.href = `/item/edit/${itemId}`;
+                }
+            }, true); // Use capture phase
         });
-
-        if (selectedSubtype && categoryMap[selectedCat].includes(selectedSubtype)) {
-            subSelect.value = selectedSubtype;
+        
+        // Prevent clicks on the entire table from triggering actions if they're from navigation
+        const table = document.querySelector('table');
+        if (table) {
+            table.addEventListener('click', function(e) {
+                if (isNavigationElement(e.target) || isClickInNavigationBar(e.clientX, e.clientY)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return;
+                }
+            }, true);
         }
-    }
-
-    function openEditModal(itemId) {
-        const form = document.getElementById("editItemForm");
-        const title = document.getElementById("modal-title");
-        const deleteContainer = document.getElementById("delete-button-container");
-        const deleteForm = document.getElementById("deleteForm");
-
-        if (itemId) {
-            const item = itemsData.find(i => i.id === itemId);
-            if (!item) return;
-
-            document.getElementById("edit-id").value = item.id;
-            document.getElementById("edit-name").value = item.name;
-            document.getElementById("edit-category").value = item.category.type;
-            updateSubtypes(item.category.subtype);
-
-            form.action = `/item/edit/${item.id}`;
-            deleteForm.action = `/item/delete/${item.id}`;
-            deleteContainer.style.display = "block";
-            title.textContent = "Edit Item";
-        } else {
-            form.reset();
-            document.getElementById("edit-id").value = "";
-            updateSubtypes();
-            form.action = "/add_item";
-            deleteContainer.style.display = "none";
-            title.textContent = "Add Item";
-        }
-
-        document.getElementById("edit-photo").value = "";
-        document.getElementById("photo-filename").textContent = "";
-        document.getElementById("photo-preview").style.display = "none";
-
-        document.getElementById("modalOverlay").style.display = "block";
-        document.getElementById("editModal").style.display = "block";
-    }
-
-    function closeModal() {
-        document.getElementById("editModal").style.display = "none";
-        document.getElementById("modalOverlay").style.display = "none";
-    }
-
-    function updatePhotoLabel(input) {
-        const label = document.getElementById("photo-filename");
-        const preview = document.getElementById("photo-preview");
-        if (input.files.length > 0) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-            };
-            reader.readAsDataURL(input.files[0]);
-            label.textContent = input.files[0].name;
-        } else {
-            preview.style.display = 'none';
-            label.textContent = '';
-        }
-    }
+    });
 </script>
 {% endblock %}

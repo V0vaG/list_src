@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Item{% endblock %}
+
+{% block extra_styles %}
+    .container {
+        max-width: 600px;
+        margin: auto;
+        background-color: var(--surface-color);
+        padding: 30px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+    }
+
+    h2 {
+        text-align: center;
+        color: var(--text-primary);
+        margin-bottom: 2rem;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    label {
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    input[type="text"],
+    select {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        font-family: inherit;
+        transition: all 0.2s ease;
+        background: var(--surface-color);
+    }
+
+    input[type="text"]:focus,
+    select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+
+    .photo-upload-section {
+        margin: 1rem 0;
+    }
+
+    .photo-preview {
+        max-width: 200px;
+        max-height: 200px;
+        margin-top: 1rem;
+        border-radius: var(--radius-md);
+        border: 2px solid var(--border-color);
+    }
+
+    .current-photo {
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .button {
+        flex: 1;
+        padding: 0.875rem 2rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .button:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .button-secondary {
+        background: var(--secondary-color);
+    }
+
+    .button-danger {
+        background: linear-gradient(135deg, var(--error-color), #dc2626);
+    }
+
+    .delete-section {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid var(--border-color);
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 1.5rem;
+        }
+
+        .button-group {
+            flex-direction: column;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Edit Item</h2>
+    <form action="{{ url_for('edit_item', item_id=item.id) }}" method="POST" enctype="multipart/form-data">
+        <div>
+            <label for="name">Item Name:</label>
+            <input type="text" id="name" name="name" value="{{ item.name }}" required>
+        </div>
+
+        <div>
+            <label for="category">Category:</label>
+            <select id="category" name="category" required onchange="updateSubtypes()">
+                {% for cat in category_map.keys() %}
+                    <option value="{{ cat }}" {% if item.category.type == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="subcategory">Subtype:</label>
+            <select id="subcategory" name="subcategory" required>
+                {% for sub in category_map[item.category.type] %}
+                    <option value="{{ sub }}" {% if item.category.subtype == sub %}selected{% endif %}>{{ sub }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="photo-upload-section">
+            <label>Photo:</label>
+            {% if item.photo %}
+                <div class="current-photo">
+                    Current photo:
+                    <img src="{{ url_for('uploaded_file', filename=item.photo) }}" alt="Current photo" class="photo-preview" id="current-photo">
+                </div>
+            {% endif %}
+            <button type="button" class="button button-secondary" onclick="document.getElementById('photo').click();">📷 {% if item.photo %}Change Photo{% else %}Upload Photo{% endif %}</button>
+            <input type="file" id="photo" name="photo" accept="image/*" onchange="previewPhoto(this)">
+            <span id="photo-filename" style="font-size: 0.875rem; color: var(--text-secondary); margin-left: 0.5rem;"></span>
+            <img id="photo-preview" src="" alt="Preview" class="photo-preview" style="display: none;">
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="button">💾 Save Changes</button>
+            <a href="{{ url_for('view_all_items') }}" class="button button-secondary" style="text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center;">Cancel</a>
+        </div>
+    </form>
+
+    <div class="delete-section">
+        <form action="{{ url_for('delete_independent_item', item_id=item.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this item? This action cannot be undone.');">
+            <button type="submit" class="button button-danger" style="width: 100%;">🗑 Delete Item</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const categoryMap = {{ category_map|tojson }};
+
+    function updateSubtypes() {
+        const catSelect = document.getElementById("category");
+        const subSelect = document.getElementById("subcategory");
+        const selectedCat = catSelect.value;
+
+        subSelect.innerHTML = "";
+
+        (categoryMap[selectedCat] || []).forEach(sub => {
+            const opt = new Option(sub, sub);
+            subSelect.appendChild(opt);
+        });
+    }
+
+    function previewPhoto(input) {
+        const filenameSpan = document.getElementById("photo-filename");
+        const preview = document.getElementById("photo-preview");
+        const currentPhoto = document.getElementById("current-photo");
+        
+        if (input.files.length > 0) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                if (currentPhoto) {
+                    currentPhoto.style.display = 'none';
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+            filenameSpan.textContent = input.files[0].name;
+        } else {
+            preview.style.display = 'none';
+            filenameSpan.textContent = '';
+        }
+    }
+</script>
+{% endblock %}
+

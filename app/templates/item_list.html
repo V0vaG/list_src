@@ -71,6 +71,24 @@
             background-color: #f8fafc;
         }
 
+        .edit-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.8125rem;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .edit-button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
         @media (max-width: 768px) {
             th, td {
                 padding: 8px 6px;
@@ -92,6 +110,16 @@
             th:nth-child(4),
             td:nth-child(4) {
                 min-width: 90px;
+            }
+
+            th:last-child,
+            td:last-child {
+                width: 80px;
+            }
+
+            .edit-button {
+                padding: 4px 8px;
+                font-size: 0.75rem;
             }
 
             img {
@@ -230,15 +258,19 @@
                     <th>Name</th>
                     <th>Category</th>
                     <th>Subtype</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in items %}
-                    <tr data-item-id="{{ item.id }}" style="cursor: pointer;">
+                    <tr data-item-id="{{ item.id }}">
                         <td><img src="{{ item.photo }}" alt="Item Image"></td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.category.type }}</td>
                         <td>{{ item.category.subtype }}</td>
+                        <td>
+                            <button class="edit-button" onclick="openEditModal('{{ item.id }}')">Edit</button>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -293,112 +325,7 @@
     const itemsData = {{ items|tojson }};
     const categoryMap = {{ category_map|tojson }};
 
-    // Handle table row clicks with proper event handling
-    document.addEventListener('DOMContentLoaded', function() {
-        const navBar = document.querySelector('.nav-bar');
-        const tableRows = document.querySelectorAll('table tbody tr[data-item-id]');
-        
-        // Track touch start position to detect if touch originated from nav bar
-        let touchStartElement = null;
-        
-        // Capture touch start to identify the element that was touched
-        document.addEventListener('touchstart', function(e) {
-            touchStartElement = e.target;
-        }, { passive: true });
-        
-        if (tableRows.length > 0) {
-            tableRows.forEach(row => {
-                row.addEventListener('click', function(e) {
-                    // Check if click originated from navigation bar or its children
-                    const clickedElement = e.target;
-                    if (clickedElement.closest('.nav-bar') || 
-                        clickedElement.closest('.nav-tab') || 
-                        clickedElement.closest('nav') ||
-                        clickedElement.tagName === 'A') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
-                    }
-                    
-                    // Check if click is within navigation bar area by coordinates
-                    const navBarRect = navBar ? navBar.getBoundingClientRect() : null;
-                    const clickY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : null);
-                    
-                    if (navBarRect && clickY !== null && clickY < navBarRect.bottom + 10) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
-                    }
-                    
-                    // Open edit modal
-                    const itemId = row.getAttribute('data-item-id');
-                    if (itemId) {
-                        openEditModal(itemId);
-                    }
-                });
-                
-                // Also handle touch events separately
-                row.addEventListener('touchend', function(e) {
-                    const touch = e.changedTouches[0];
-                    if (!touch) {
-                        touchStartElement = null;
-                        return;
-                    }
-                    
-                    // Check if touch originated from navigation bar
-                    const touchedElement = touchStartElement || e.target;
-                    if (touchedElement && (
-                        touchedElement.closest('.nav-bar') || 
-                        touchedElement.closest('.nav-tab') || 
-                        touchedElement.closest('nav') ||
-                        touchedElement.tagName === 'A' ||
-                        touchedElement.classList.contains('nav-tab') ||
-                        touchedElement.classList.contains('logout-btn')
-                    )) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        touchStartElement = null;
-                        return false;
-                    }
-                    
-                    // Check element at touch point coordinates
-                    const elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
-                    if (elementAtPoint && (
-                        elementAtPoint.closest('.nav-bar') || 
-                        elementAtPoint.closest('.nav-tab') || 
-                        elementAtPoint.closest('nav') ||
-                        elementAtPoint.tagName === 'A' ||
-                        elementAtPoint.classList.contains('nav-tab') ||
-                        elementAtPoint.classList.contains('logout-btn')
-                    )) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        touchStartElement = null;
-                        return false;
-                    }
-                    
-                    // Check if touch is within navigation bar area by coordinates
-                    const navBarRect = navBar ? navBar.getBoundingClientRect() : null;
-                    
-                    if (navBarRect && touch.clientY < navBarRect.bottom + 10) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        touchStartElement = null;
-                        return false;
-                    }
-                    
-                    // Open edit modal only if touch didn't originate from nav bar
-                    const itemId = row.getAttribute('data-item-id');
-                    if (itemId) {
-                        e.preventDefault();
-                        openEditModal(itemId);
-                    }
-                    
-                    touchStartElement = null;
-                });
-            });
-        }
-    });
+    // No longer need row click handlers - only Edit buttons trigger the modal
 
     function updateSubtypes(selectedSubtype = "") {
         const catSelect = document.getElementById("edit-category");

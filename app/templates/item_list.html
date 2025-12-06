@@ -234,7 +234,7 @@
             </thead>
             <tbody>
                 {% for item in items %}
-                    <tr onclick="if(event.target.tagName !== 'A' && !event.target.closest('a')) { openEditModal('{{ item.id }}'); }" style="cursor: pointer;">
+                    <tr data-item-id="{{ item.id }}" style="cursor: pointer;">
                         <td><img src="{{ item.photo }}" alt="Item Image"></td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.category.type }}</td>
@@ -293,38 +293,62 @@
     const itemsData = {{ items|tojson }};
     const categoryMap = {{ category_map|tojson }};
 
-    // Prevent table row clicks when clicking navigation
+    // Handle table row clicks with proper event handling
     document.addEventListener('DOMContentLoaded', function() {
         const navBar = document.querySelector('.nav-bar');
-        const tableRows = document.querySelectorAll('table tbody tr');
+        const tableRows = document.querySelectorAll('table tbody tr[data-item-id]');
         
-        if (navBar && tableRows.length > 0) {
-            // Add a flag to track if navigation was clicked
-            let navClicked = false;
-            
-            navBar.addEventListener('click', function(e) {
-                navClicked = true;
-                setTimeout(() => { navClicked = false; }, 100);
-            }, true);
-            
-            navBar.addEventListener('touchend', function(e) {
-                navClicked = true;
-                setTimeout(() => { navClicked = false; }, 100);
-            }, true);
-            
-            // Prevent table row clicks if navigation was just clicked
+        if (tableRows.length > 0) {
             tableRows.forEach(row => {
-                const originalOnclick = row.onclick;
-                row.onclick = function(e) {
-                    if (navClicked || e.target.closest('.nav-bar')) {
+                row.addEventListener('click', function(e) {
+                    // Check if click is within navigation bar area
+                    const navBarRect = navBar ? navBar.getBoundingClientRect() : null;
+                    const clickY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : null);
+                    
+                    // If click is in navigation area, don't open modal
+                    if (navBarRect && clickY !== null && clickY < navBarRect.bottom + 10) {
                         e.preventDefault();
                         e.stopPropagation();
                         return false;
                     }
-                    if (originalOnclick) {
-                        return originalOnclick.call(this, e);
+                    
+                    // Check if clicking on a link or navigation element
+                    if (e.target.closest('.nav-bar') || e.target.closest('a')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
                     }
-                };
+                    
+                    // Open edit modal
+                    const itemId = row.getAttribute('data-item-id');
+                    if (itemId) {
+                        openEditModal(itemId);
+                    }
+                });
+                
+                // Also handle touch events separately
+                row.addEventListener('touchend', function(e) {
+                    const navBarRect = navBar ? navBar.getBoundingClientRect() : null;
+                    const touch = e.changedTouches[0];
+                    
+                    if (navBarRect && touch.clientY < navBarRect.bottom + 10) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                    
+                    if (e.target.closest('.nav-bar') || e.target.closest('a')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                    
+                    const itemId = row.getAttribute('data-item-id');
+                    if (itemId) {
+                        e.preventDefault();
+                        openEditModal(itemId);
+                    }
+                });
             });
         }
     });
